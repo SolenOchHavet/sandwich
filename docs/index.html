@@ -1,0 +1,678 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd"
+    >
+<html lang="en">
+<head>
+    <title>Sandwich 1.0 - Documentation</title>
+    <link rel="stylesheet" href="./style/default.css" type="text/css">
+</head>
+<body>
+    <div class="document">
+        <div class="document-section">
+            <p class="document-title">Sandwich 1.0</p>
+            <p class="document-subtitle">A shy little render layer manager for Maya<br>
+            Written by Andreas Ekoutsidis</p>
+            
+            <ul id="toc">
+                <li><span>Introduction</span> <a href="#">Jump</a></li>
+                <li><span>Requirements</span> <a href="#">Jump</a></li>
+                <li><span>Installation</span> <a href="#">Jump</a></li>
+                <li><span>Basics</span> <a href="#">Jump</a></li>
+                    <ul>
+                        <li><span>A render layer in Sandwich</span> <a href="#">Jump</a></li>
+                        <li><span>Naming objects</span> <a href="#">Jump</a></li>
+                        <li><span>Commenting</span> <a href="#">Jump</a></li>
+                        <li><span>Sandwich node</span> <a href="#">Jump</a></li>
+                        <li><span>Render and export</span> <a href="#">Jump</a></li>
+                    </ul>
+                <li><span>Walkthrough</span> <a href="#">Jump</a></li>
+                    <ul>
+                        <li><span>The first launch!</span> <a href="#">Jump</a></li>
+                        <li><span>Overview of the interface</span> <a href="#">Jump</a></li>
+                        <li><span>Managing render layers</span> <a href="#">Jump</a></li>
+                        <li><span>The Overview section</span> <a href="#">Jump</a></li>
+                        <li><span>The Visibility section</span> <a href="#">Jump</a></li>
+                        <li><span>The Shaders section</span> <a href="#">Jump</a></li>
+                        <li><span>The Attributes section</span> <a href="#">Jump</a></li>
+                        <li><span>The Override Globals section</span> <a href="#">Jump</a></li>
+                        <li><span>The Render Globals section</span> <a href="#">Jump</a></li>
+                        <li><span>The Code section</span> <a href="#">Jump</a></li>
+                        <li><span>Rendering from Sandwich</span> <a href="#">Jump</a></li>
+                        <li><span>Exporting from Sandwich</span> <a href="#">Jump</a></li>
+                    </ul>
+                <li><span>Technical Details</span> <a href="#">Jump</a></li>
+                    <ul>
+                        <li><span>Environment variables</span> <a href="#">Jump</a></li>
+                        <li><span>About the sandwichNode</span> <a href="#">Jump</a></li>
+                        <li><span>About the source code</span> <a href="#">Jump</a></li>
+                    </ul>
+            </ul>
+            
+            <h1>Introduction</h1>
+            <p>Sandwich is a <b>name based</b> render layer manager for Maya, that has been written during my free time while I have
+            been working on my personal projects. It's based on concepts and working experience of <b>Andrew Chapman</b>'s
+            <a href="http://www.technolumiere.com/software/renderpasses.html">Render Passes for Maya</a> plugin.</p>
+            <p>In comparison, Maya's approach has always been using connections to setup all render layers. Because of this solution,
+            it's pretty fast to setup render layers. But it comes with a price:</p>
+            <ul>
+                <li>It's unstable. The render layers can easily break. And when they do, they can break severely.</li>
+                <li>Difficult to quickly overview what's part of a render layer.</li>
+                <li>Not procedural. If you would remove objects or a reference from your render scene and then import new objects or
+                references, you need to setup them again in all render layers.</li>
+            </ul>
+            <p>These have been the three main problems that I have been fighting for a long time. After been using Andrew Chapman's
+            solution back in the days when I worked as a 3d artist, it really felt like this was the approach to go.</p>
+            <p>As I previously stated, Sandwich is name based. Sandwich finds its objects, shaders and attributes by name instead
+            of storing connections. This means that any object or shader can be deleted and reimported in the scene and still work
+            as long as their names are the same.</p>
+            <div class="attention">
+                <p><b>Fun fact!</b><br>
+                This whole crazy idea of deleting and reimporting objects came from a time at my work for several years ago when
+                Maya's reference tools still were too unstable to use in production (I think this was around Maya 6 or 7). As you
+                can imagine, it had been a real pain if we used render layers when deleting and reimporting objects all the time.</p>
+            </div>
+        </div>
+        
+        <div class="document-section">
+            <h1>Requirements</h1>
+            <p>In order to run Sandwich, you will need:</p>
+            <ul>
+                <li>Autodesk Maya 2012 or higher</li>
+                <li>PyQT (<a href="http://www.justinfx.com/2011/11/09/installing-pyqt4-for-maya-2012-osx/">Justinfx has
+                binaries</a>) or PySide (<a href="http://around-the-corner.typepad.com/adn/2012/10/building-qt-pyqt-pyside-for-maya-2013.html">Around-the-corner has compile instructions</a>)</li>
+            </ul>
+            
+            <p>Supported render engines:</p>
+            <ul>
+                <li>Maya Software</li>
+                <li>mental ray</li>
+                <li>Chaos Group V-Ray</li>
+            </ul>
+        </div>
+        
+        <div class="document-section">
+            <h1>Installation</h1>
+            <p>Japp..</p>
+        </div>
+        
+        <div class="document-section">
+            <a name="basics"></a><h1>Basics</h1>
+            <div class="document-sub-section">
+                <h2>A render layer in Sandwich</h2>
+                    <p>A render layer in Sandwich has been broken down into sections. Sections, that are represented as
+                    tabs in the interface. These are the sections:</p>
+                    <p><b>Overview</b><br>
+                    Helpful information. Each render layer should contain comments, descriptions and any other information that
+                    helps any artist to understand what your render layer is doing.</p>
+                    <p><b>Visibility</b><br>
+                    What should be visible in the layer? This section describes that by specifying the objects by their names
+                    and the use of asterisks. As the later suggest, instead of specifying for example eight objects manually:</p>
+                    <div class="code-block">
+                        tree01_GRP tree02_GRP tree03_GRP tree04_GRP tree05_GRP tree06_GRP tree07_GRP tree08_GRP
+                    </div>
+                    <p>You can shorten it down by using an asterisk:</p>
+                    <div class="code-block">
+                        tree*_GRP
+                    </div>
+                    <p><b>Shaders</b><br>
+                    Which shaders should be used? This section specifies what shaders should be applied to which objects. Even
+                    here, you can use asterisks when specifying objects for a shader.</p>
+                    <p><b>Attributes</b><br>
+                    Which attributes should be changed? Any type of attributes that must be applied can be specified here,
+                    like render stats (casts shadows, primary visibility, etc). Even here, asterisks can be used when specifying
+                    the affected objects.</p>
+                    <p><b>Override Globals</b><br>
+                    Overriding Sandwich's defaults in Globals. There are several settings from Sandwich's Globals that can be
+                    overriding at render layer level.</p>
+                    <p><b>Render Globals</b><br>
+                    Overview of the changed render globals for the layer. This section helps you keep track of which render
+                    globals that specifically have been set for the render layer compared to the defaults in masterLayer.</p>
+                    <p><b>Code</b><br>
+                    Additional MEL that needs to be executed. This section lets you specify override and revert code for a
+                    layer using MEL.</p>
+                    
+            </div>
+            
+            <div class="document-sub-section">
+                <a name="basics_naming"></a><h2>Naming objects</h2>
+                <p>The most important concept of Sandwich is the art of naming objects. Everything must have a name, no matter
+                if it's an exact name (ex. <span class="code">chest_GEO</span>, <span class="code">leftEye_GEO</span>) or a
+                diffuse name (ex. <span class="code">metalicDetail032_GEO</span>). There are some helpful guidelines that is
+                recommended to follow:</p>
+                <p><b>All names should have a suffix depending on object type</b><br>
+                By object type, I mean curves, meshes, lights, cameras, etc. Ending each with a suffix helps you to easier
+                identify what object it is.</p>
+                <p>However, there is an additional reason for this in the scope of Sandwich. If you wish to apply an attribute
+                to a couple of objects with poor naming:</p>
+                <div class="code-block">
+                    magicBall1 magicBall02_GEO1 magicBall3
+                </div>
+                <p>You might think this will work to select them all:</p>
+                <div class="code-block">
+                    magicBall*
+                </div>
+                <p>Indeed, all of the three objects will be selected. However, their shape nodes will be selected as well because
+                their names are:</p>
+                <div class="code-block">
+                    magicBall1Shape magicBall02_GEO1Shape magicBall3Shape
+                </div>
+                <p>The only way to avoid this is by making sure the transform nodes ends with a suffix. Renaming the above objects
+                will solve our problem:</p>
+                <div class="code-block">
+                    magicBall1_GEO magicBall2_GEO magicBall3_GEO
+                </div>
+                <p>Here is a suggested list of suffixes to use:</p>
+                <table>
+                    <tr><th width="200">Type</th><th>Suffix</th></tr>
+                    <tr><td>mesh, nurbs, subdivs</td><td>GEO</td></tr>
+                    <tr><td>groups</td><td>GRP</td></tr>
+                    <tr><td>lights</td><td>LGT</td></tr>
+                    <tr><td>cameras</td><td>CAM</td></tr>
+                    <tr><td>curves</td><td>CRV</td></tr>
+                    <tr><td>shaders</td><td>SHD</td></tr>
+                </table>
+                <p>If you need to name additional types of objects, try to limit the suffixes to no more than three letters.</p>
+                
+                <p><b>Use paddings when naming multiple objects with the same name</b><br>
+                It's okay to name multiple objects with the same name, if you use an incremental number for each. Depending on
+                how many objects, you should adjust the padding accordingly. If you for example wish to name 324 objects with
+                the same name you should use a padding of 3:</p>
+                <div class="code-block">
+                    myObject001_GEO .. myObject074_GEO .. myObject324_GEO
+                </div>
+                
+                <p><b>Never begin a name with a capital letter</b><br>
+                Maya makes a difference between small and capital letters. <span class="code">LeftSection_GEO</span> and
+                <span class="code">leftSection_GEO</span> is not the same name. It's usually common sense to begin all names
+                with a small letter, even in programming and VFX in general.</p>
+                
+                <p><b>Add important keywords to your names</b><br>
+                If you find yourself in cases where you have a lot of objects, it could be wise to add additional keywords
+                in the objects' names in order to distinguish between them.</p>
+                <p>An example would be for the name <span class="code">tree_GRP</span> that contains the geometry for a tree.
+                If you have several types of trees, you could name them:</p>
+                <div class="code-block">
+                    smallTree_GRP funkyTree_GRP darkCrazyTree_GRP whiteCrazyTree_GRP
+                </div>
+                <p>Already, you have given them additional details for your own good. But it also helps you select different
+                trees depending on what you need. The first two names have one keyword. The two last items have two
+                keywords to give you more control.</p>
+                <p>It's even recommended to use keywords in namespaces when you might need them. Usually, the scenario is
+                when you need two or more instances of an file for different purposes.</p>
+                
+                <p><b>Index your namespace for multiple instances of the same reference file</b><br>
+                ..</p>
+                
+                <p><b>Be aware of non-unique names</b><br>
+                You will encounter situations where you will have the same name twice or more. This is possible when they
+                are not in the same group. In such situations, Sandwich will select them all by default. If this is not what
+                you wish for, you need to specify it's parent. Let's see an example:</p>
+                <div class="code-block">
+                    main_GRP<br>
+                    &nbsp;&nbsp;treesFront_GRP<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;tree01_GEO<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;tree02_GEO<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;tree03_GEO<br>
+                    &nbsp;&nbsp;&nbsp;treesBack_GRP<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;tree01_GEO<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;tree02_GEO<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;tree03_GEO<br>
+                </div>
+                <p>When you only specify:</p>
+                <div class="code-block">
+                    tree01_GEO
+                </div>
+                <p>Sandwich will select the both instances of <span class="code">tree01_GEO</span>. However, if you are only
+                concerned for the item in <span class="code">treesFront_GRP</span> you need to add it's name to the object path:</p>
+                <div class="code-block">
+                    treesFront_GRP|tree01_GEO
+                </div>
+                <p>Do note that you can have any number of items in the path to your object name depending on how much you
+                need to specify to come to the right objects.</p>
+                <p>As most examples usually shows without namespaces, this is how the same line above would be written using
+                namespace <span class="code">tr01</span>:</p>
+                <div class="code-block">
+                    tr01:treesFront_GRP|tr01:tree01_GEO
+                </div>
+            </div>
+            
+            <div class="document-sub-section">
+                <a name="basics_commenting"></a><h2>Commenting</h2>
+                    <p>Anywhere in Sandwich where you enter the names of objects to be affected by either visibility, shaders or
+                    attributes, you can add Python comments. This can help you understand further what each objects are and why they
+                    are used. Example:</p>
+                    <img src="./images/image_001.png" />
+                    <div class="img-comment">Image 1: Shows two ways to use Python comments for text fields that handles objects.</div>
+                    <p>If you end up using a lot of reference files within your scene, you might find yourself stuck with a lot of
+                    namespaces. These can clutter down your texts and make it harder to quickly read the content. If you find
+                    yourself stuck in such cases, make use of comments!</p>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2>Sandwich node</h2>
+                <p>From the first launch of Sandwich, a transform node called <b>sandwichNode</b> will be added into your scene. This
+                node can remain hidden or grouped into some obscure place. However, do never rename it. If Sandwich
+                can't find the node, a new will be created and all layers and settings will be gone.</p>
+                <p>Everything in Sandwich are saved as attributes on the node, completely visible if you wish to transfer or modify
+                them with your own tools. For more in-depth information about the attributes, jump down to
+                <a href="#about_the_sandwichnode">About the sandwichNode</a>.</p>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2>Render and export</h2>
+            </div>
+        </div>
+        
+        <div class="document-section">
+            <h1>Walkthrough</h1>
+            <div class="document-sub-section">
+                <h2>The first launch!</h2>
+                <p>When you launch Sandwich for the first time in a scene, the <b>Globals</b> dialog will popup above the
+                interface:</p>
+                <img src="./images/image_004.png" />
+                <div class="img-comment">Image 2: Sandwich's Global dialog, that appears at the first run within the scene.</div>
+                <p>The reason is that there are some important options that must be set in order for Sandwich to work properly:</p>
+                <div class="attention">
+                    <p><span class="atitle">Default Engine</span> sets the default render engine to be used for all render
+                    layers. This setting can be overridden at render layer level by going to the <b>Override Globals</b> tab.</p>
+                    <p><span class="atitle">Output Renders</span> sets the directory where all the renders should be rendered
+                    to when using the <b>Render...</b> button from Sandwich's toolbar. Further directories will be created from
+                    this level any time a new render is executed, so don't worry that they all will be piled inside here.</p>
+                    <p><a name="globals_outputscenes"></a><span class="atitle">Output Scenes</span> sets the directory where
+                    all render scenes will be exported to either before rendering or when you export the scenes using the
+                    <b>Export...</b> button from Sandwich's toolbar.</p>
+                    <p><span class="atitle">Default Camera</span> sets the default camera to be used as render camera for all
+                    render layers. This setting can be overridden at render layer level by going to the <b>Override Globals</b>
+                    tab.</p>
+                    <p><span class="atitle">Default Resolution</span> sets the default resolution to be used for all render
+                    layers. This setting can be overridden at render layer level by going to the <b>Override Globals</b> tab.</p>
+                    <p><span class="atitle">Default Range</span> sets the default frame range to be used for all render layers.
+                    This setting can be overridden at render layer level by going to the <b>Override Globals</b> tab.</p>
+                    <p><span class="atitle">Import references into the scene on export</span> is a ridiculous setting I had to
+                    add during my personal project because my reference objects started to disappear when rendering with mental
+                    ray when having too many in the scene. Probably a bug, but I kept it there if needed.</p>
+                    <p><a name="globals_terminalapp"></a><span class="atitle">Terminal App</span> is the command Sandwich has
+                    to execute to create a separate terminal outside of Maya in order to render your render layers. You do only
+                    need to change this line if you are on Linux, since it really depends on what terminal application you use.
+                    Notice the <span class="code">$BATCHFILE</span> variable. That variable will be converted into a file path
+                    pointing to a bash script during the execute, so please remember to include the variable when modifying
+                    this setting!</p>
+                </div>
+                <p>Once you have set all the settings and press <b>Save</b>, then you are ready to use Sandwich. You can of
+                course cancel the dialog and still use Sandwich, but do remember to go back here soon again to finish the
+                settings. As soon as the <b>Globals</b> dialog has been closed for the first time, a transform node will be
+                added to your scene called <b>sandwichNode</b>. This node will contain all render layers and all settings so
+                never rename or remove it unless you know what you are doing!</p>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2>Overview of the interface</h2>
+                <p>The interface has three main sections - the toolbar above, the render layer list to the left and a tab layout
+                to the right with all settings for the selected render layer:</p>
+                <img src="./images/image_000.png" />
+                <div class="img-comment">Image 3: The main interface of Sandwich.</div>
+                <p>The toolbar consists of buttons for creating, renaming and saving render layers as well as buttons for
+                <a href="#rendering">rendering</a>, <a href="#exporting">exporting</a> and accessing Sandwich's settings.</p>
+                <p>The <b>Render Layers</b> list shows all render layers available within the scene. Only one layer at the time
+                can be selected.</p>
+                <p>The tab layout will show the content of the selected render layer. Because that Sandwich has divided a render
+                layer into so many sections, that's why I ended up doing a tab for each.</p>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2>Managing render layers</h2>
+                    <p>When launching Sandwich for the first time, every topnode will be hidden and in Sandwich you will see
+                    that masterLayer is selected in the list. As you start to unhide objects in Maya, you will also realize that
+                    all objects have lambert1 attached to it.</p>
+                    <p>In Sandwich, masterLayer is a default render layer that can not be used directly. However, from
+                    masterLayer you can set the default render globals for each render engine you wish to use. Go to
+                    <a href="#renderglobals_section">The Render Globals section</a> in order for further details.</p>
+                    <p>In order to managing the layers, you need to get familiar with Sandwich's tools that are located at
+                    the left side of the main toolbar:</p>
+                    <img src="./images/image_009.png" />
+                    <div class="img-comment">Image 4: Showing the top right corner of Sandwich, where the tools for managing the
+                    render layers are located.</div>
+                    <p>The first three buttons are related to handling render layers:</p>
+                    <div class="attention">
+                        <p><span class="atitle">New Layer...</span> lets you create a new render layer. Only letter a-z, digits and underscores are
+                        allowed in the name. Once created, that render layer will be selected in the <b>Render Layers</b> list and
+                        every topnode in the scene will be hidden and have <b>lambert1</b> attached to it. This is to let you start
+                        from scratch easily.</p>
+                        <p><span class="atitle">Rename Layer...</span> lets you rename the selected layer in the <b>Render Layers</b> list. All layers
+                        must have unique names.</p>
+                        <p><span class="atitle">Save Layer</span> will save the current settings and execute them in the scene. This is probably the
+                        most common button you will use in Sandwich. No matter how many shaders or attributes you add, or objects
+                        you put in the <b>Visibility</b> tab, no changes will be made in the scene until you hit this button.</p>
+                    </div>
+                    <p>In order to switch between the render layers, you simply select the one you wish to go to in the
+                    <b>Render Layers</b> list.</p>
+                    <p>If you ever need to delete a render layer, right click it in the <b>Render Layers</b> list and click
+                    <b>Delete Layer</b> from the context menu.</p>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2>The Overview section</h2>
+                    <p>This section lets you add description and comments to your render layer:</p>
+                    <img src="./images/image_003.png" />
+                    <div class="img-comment">Image 5: Sandwich's Overview tab, where you can write comments about the render layer.</div>
+                    <p>There are many reasons why you should fill this section with information:</p>
+                    <ul>
+                        <li>If you are more than one artist working on the same scene, it will help them all on how and why you
+                        set it up as you did.</li>
+                        <li>If you come back to this scene half a year later, you will still know what you did.</li>
+                        <li>Use it as a todo list to keep track of the planned changes you are going to do.</li>
+                    </ul>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2><a name="visibility_section"></a>The Visibility section</h2>
+                    <p>Everything that should be visible in this layer are specified here by writing their names. You are allowed
+                    to use <a href="#basics_naming">asterisks in names</a> and <a href="#basics_commenting">Python comments</a> as you
+                    learnt earlier in the <a href="#basics">Basics section</a>.</p>
+                    <img src="./images/image_002.png" />
+                    <div class="img-comment">Image 6: Sandwich's Visibility tab, where you specify what objects should be visible for the render layer.</div>
+                    <p>This tab also have two buttons - <b>Add Objects</b> and <b>Reorganize Objects</b>:</p>
+                    <div class="attention">
+                        <p><span class="atitle">Add Objects</span> will add the names of whatever objects you have selected in Maya. Sandwich will only add them
+                        if they have not yet been specified. Since Sandwich supports asterisks in names, they will also be checked
+                        before the objects are getting added.</p>
+                        <p><span class="atitle">Reorganize Objects</span> sorts the content of the window in alphabetical order. If it finds scenarios where you
+                        have entered Python comments in the text field (like in image 2) then all objects written below a comment
+                        will be sorted separately.</p>
+                    </div>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2>The Shaders section</h2>
+                    <p>This section handles the applying of shaders on the current layer. It's shader centric, meaning you first add a
+                    shader and then apply objects to it.</p>
+                    <img src="./images/image_010.png" />
+                    <div class="img-comment">Image 7: Sandwich's Shader tab, where you specify what shader each object will have for
+                    the render layer.</div>
+                    <p>The left list called <b>Shader List</b> shows all current shaders for the layer. You can add any number of new
+                    shaders by clicking the <b>Add Shader...</b> button. From the dialog that pops up, you will get a list of all
+                    shaders within your scene that are not yet apart of this layer. Remember to name all your shaders in a good way to
+                    make it easier for you to find them.</p>
+                    <p>Once you have added a shader, it will become selected. Any shader that are selected will show which objects it
+                    will be applied on in the <b>Assign to these Objects</b> text field. As in the <a href="#visibility_section">Visibility tab</a>,
+                    you are allowed to use <a href="#basics_naming">asterisks in names</a> and <a href="#basics_commenting">Python comments</a>
+                    as specified in the <a href="#basics">Basics section</a>. You may also use sets if you like.</p>
+                    <p>Any item in the <b>Shader List</b> can be right clicked to reveal a context menu with a few items:</p>
+                    <div class="attention">
+                        <p><span class="atitle">Rename Shader...</span> is used to rename selected shader. You can also use the <b>Rename Shader...</b> button
+                        from the interface.</p>
+                        <p><span class="atitle">Transfer Shader...</span> is used to transfer selected shader with it's assigned object into another layer. If
+                        shader already exists in that layer, you will be asked if you wish to overwrite the shader or not. Sometimes helpful
+                        when needing to reuse a shader setup on more than one render layer. <b>Note:</b> The transfer to the other render
+                        layer will be saved automatically, you do not need to press <b>Save Layer</b> for this.</p>
+                        <p><span class="atitle">Delete Shader...</span> will delete the shader from the list.</p>
+                    </div>
+                    <p>And as below <b>Visibility</b>, we have two familiar buttons in the interface:</p>
+                    <div class="attention">
+                        <p><span class="atitle">Add Objects</span> will add the names of whatever objects you have selected in Maya. Sandwich will only add them
+                        if they have not yet been specified. Since Sandwich supports asterisks in names, they will also be checked before
+                        the objects are getting added.</p>
+                        <p><span class="atitle">Reorganize Objects</span> sorts the content of the window in alphabetical order. If it finds scenarios where you
+                        have entered Python comments in the text field (like in image 2) then all objects written below a comment will be
+                        sorted separately.</p>
+                    </div>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2>The Attributes section</h2>
+                    <p>This section handles the changes you wish to do on attributes on the current layer. It's attribute centric,
+                    meaning you first add an attribute and then sets the values and objects for it.</p>
+                    <img src="./images/image_011.png" />
+                    <p>The idea is that when a layer becomes active, it will set the <b>Override Value</b> for all attributes that
+                    the layer have. It could be changes in the <b>Render Stats</b> for objects, shader settings that need to be changed
+                    specifically for a layer, etc. When the layer is switched for another layer however, the <b>Revert Value</b> will
+                    be set in order to restore the attributes to their default state.</p>
+                    <p>It's important to understand that certain attributes exists on object level and other at shape level and very
+                    few exists on both. Doing this kind of assignment can give unpredictable results:</p>
+                    <div class="code-block">
+                        myObject*
+                    </div>
+                    <p>This will not only select the object, but also the shape as mentioned in the Basic's section
+                    <a href="#basics_naming">Naming Objects</a>. Any object that Sandwich do not find the specified attribute for will
+                    be printed as a warning in the <b>Script Editor</b>.</p>
+                    <p>The left list called <b>Attribute List</b> shows all current attributes for the layer. You can add new
+                    attributes by clicking the <b>Add Attribute...</b> button. From the dialog that pops up, you enter the name
+                    of the attribute. If you spelled it wrong you can always change it later using the <b>Rename Attribute...</b>
+                    button.</p>
+                    <p>Once you add an attribute, it will become selected. Sandwich will only trigger the attribute if <b>Override Value</b>,
+                    <b>Revert Value</b> and <b>Assign to These Objects</b> have been filled out. As usual, you are allowed to use
+                    <a href="#basics_naming">asterisks in names</a> and <a href="#basics_commenting">Python comments</a> when
+                    specifying objects. You may also use sets if you like.</p>
+                    <p>Any item in the <b>Attribute List</b> can be right clicked to reveal a context menu with a few items:</p>
+                    <div class="attention">
+                        <p><span class="atitle">Rename Attribute...</span> is used to rename selected attribute.</p>
+                        <p><span class="atitle">Delete Attribute...</span> will delete the attribute from the list.</p>
+                    </div>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2>The Override Globals section</h2>
+                    <p>Several settings that you defined in Sandwich's <b>Globals</b> can here at render layer level be overridden:</p>
+                    <img src="./images/image_005.png" />
+                    <div class="img-comment">Image 8: Sandwich's Override Globals tab, where you can override several settings from
+                    the Globals for the render layer.</div>
+                    <p>In order to activate an override, click the check box next to it. Do the opposite to inactivate an override.
+                    The following overrides exists:</p>
+                    <div class="attention">
+                        <p><span class="atitle">Override Camera Name</span> overrides the default render camera for the current render layer. Either type in
+                        the name of a camera or use the <b>Browse</b> button.</p>
+                        <p><span class="atitle">Override Resolution</span> overrides the default resolution for the current render layer.</p>
+                        <p><span class="atitle">Override Range</span> overrides the default range for the current render layer. The fields are: start frame,
+                        end frame and increment frame. The increment frame field is usually set to <b>1</b>.</p>
+                        <p><span class="atitle">Override Engine</span> overrides the default render engine for the current render layer. If you for example wish
+                        to use Paint FX for a specified render layer, you can use this setting to set the current render layer to
+                        <b>maya software</b>.</p>
+                    </div>
+            </div>
+            
+            <div class="document-sub-section">
+                <a name="renderglobals_section"></a><h2>The Render Globals section</h2>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2>The Code section</h2>
+                    <p>In this last tab, you are able to add custom MEL code that will be executed for the current layer:</p>
+                    <img src="./images/image_006.png" />
+                    <div class="img-comment">Image 9: Sandwich's Code tab, where you can specify additional override and revert MEL
+                    for the render layer.</div>
+                    <p>You have the following two fields:</p>
+                    <div class="attention">
+                        <p><span class="atitle">Override Code</span> is the code that gets executed when the current layer gets activated.</p>
+                        <p><span class="atitle">Revert Code</span> is executed when the render layer is changed into another layer, in
+                        order to revert all changes you setup in the <b>Override Code</b> field.</p>
+                    </div>
+                    <p>When your layer gets activated, executing the code in this tab will be the last step Sandwich does before the layer
+                    is ready. Firstly, it will run all <b>Revert Code</b> that exists for all other layers since Sandwich can't guarantee
+                    which was the last selected layer. This is done in order to revert any changes that an <b>Override Code</b> may have
+                    set in the scene. Then, it will execute the <b>Override Code</b> for this layer.</p>
+                    <p>It's important that you do not forget that this is the very last thing Sandwich does before the layer is ready.
+                    Since anything can be overridden here (visibility, applied shaders, attributes, etc), you should be careful with what
+                    code you write. Sandwich can't control your actions, it will only warn you if an error occurred.</p>
+                    <p>And please do not forget to fill in the <b>Revert Code</b> that contains the code to revert the changes that
+                    you setup in <b>Override Code</b>!</p>
+            </div>
+            
+            <div class="document-sub-section">
+                <h2><a name="rendering"></a>Rendering from Sandwich</h2>
+                    <p>Sandwich has basic render managing support for you who don't have a render farm or other tools to handle your
+                    renders. From Sandwich's toolbar, click the <b>Render...</b> button. The following dialog will appear:</p>
+                    <img src="./images/image_008.png" />
+                    <div class="img-comment">Image 10: Sandwich's basic render manager.</div>
+                    <p>It will list all your render layers you have along with information about render camera, resolution and range
+                    that will be used for each layer.</p>
+                    <p>The left most column called <b>Render</b> specifies which render layers should be rendered. Either click each's
+                    checkbox or double click a render layer in order to change it's status.</p>
+                    <p>As mentioned earlier, Sandwich will create additional folders for each render layer. The outgoing path can be
+                    seen at the bottom of the dialog, next to the text <b>Output Location</b>. It will expand the variables for
+                    <span class="code">$FILE</span>, <span class="code">$LAYER</span>, <span class="code">$CAMERA</span> and
+                    <span class="code">$RES</span> into the current file name, render layer, render camera and resolution used.
+                    This is to help you organize all your iterations you will do with your renders.</p>
+                    <p>In order to do the render, you have two buttons in this dialog - <b>Render Current Frame</b> and <b>Render All Frames</b>:</p>
+                    <div class="attention">
+                        <p><span class="atitle">Render Current Frame</span> will render the current frame that's selected in Maya.</p>
+                        <p><span class="atitle">Render All Frames</span> will render the whole range for each render layer.</p>
+                    </div>
+                    <p>Once you click on any of the render buttons, it is important to understand what's happening:</p>
+                    <ol>
+                        <li>It will export each active render layer into a render scene file. They will be put at the location
+                        specified by <a href="#globals_outputscenes">Output Scenes in Globals</a>.</li>
+                        <li>A bash file (OSX and Linux) or BAT file (Windows) will be created inside the same path as the render
+                        scenes that will describe all renders that will take place.</li>
+                        <li>Sandwich will query the setting <a href="#globals_terminalapp">Terminal App in Globals</a> in order
+                        to know what command to execute in order to create a terminal outside of Maya that will execute the bash/BAT
+                        script.</li>
+                        <li>Once executed, it will render one layer at the time in the terminal. At this point, you can close
+                        Maya if you want to free up some memory.</li>
+                    </ol>
+            </div>
+        
+            <div class="document-sub-section">
+                <h2><a name="exporting"></a>Exporting from Sandwich</h2>
+                    <p>If you do not wish to render the layers using Sandwich's approach, you can also export as render ready
+                    scenes. From Sandwich's toolbar, click the <b>Export...</b> button. The following dialog will appear:</p>
+                    <img src="./images/image_007.png" />
+                    <div class="img-comment">Image 11: Sandwich's export manager to export render ready scenes.</div>
+                    <p>It will list all your render layers you have and the name each will have as a file on disk.</p>
+                    <p>The left most column called <b>Export</b> specifies which render layers should be exported. Either
+                    click each's checkbox or double click a render layer in order to change it's status.</p>
+                    <p>The path the render scenes will be exported to can be found at the bottom of the dialog, next to
+                    <b>Output Location</b>. That path is set by <a href="#globals_outputscenes">Output Scenes in Globals</a>.</p>
+                    <p>In order to do the export, you have two buttons in this dialog - <b>Export as .ma</b> and <b>Export as .mb</b>:</p>
+                    <div class="attention">
+                        <p><span class="atitle">Export as .ma</span> will export selected render layers as Maya Ascii scene files.</p>
+                        <p><span class="atitle">Export as .mb</span> will export selected render layers as Maya Binary scene files.</p>
+                    </div>
+            </div>
+        </div>
+        
+        <div class="document-section">
+            <h1>Technical Details</h1>
+            <div class="document-sub-section">
+                <h2>Environment variables</h2>
+                    <p>You can customize Sandwich by setting environment variables before launching Maya. This is the complete list:</p>
+                    
+                    <p><span class="code">SANDWICH_OUTPUT_RENDERS</span><br>
+                    Sets the path to the directory where all the renders should be put.</p>
+    
+                    <p><span class="code">SANDWICH_OUTPUT_SCENES</span><br>
+                    Sets the path to the directory where all render scenes will be exported to.</p>
+    
+                    <p><span class="code">SANDWICH_RESOLUTION</span><br>
+                    Sets the default resolution. Resolution must be written as <b>width</b>x<b>height</b>. No spaces are allowed. Example:
+                    
+                    <div class="code-block">
+                        1920x1080
+                    </div></p>
+                    
+                    <p><span class="code">SANDWICH_RANGE</span><br>
+                    Sets the default frame range. Range must be written as <b>start end increment</b>. Use space to separate the three
+                    values. Example:
+                    
+                    <div class="code-block">
+                        101 180 1
+                    </div></p>
+                    
+                    <p><span class="code">SANDWICH_IMPORT_REFERENCES</span><br>
+                    Sets if all references should be imported into the scene before render/export. Valid values are <b>1</b> or <b>0</b>.</p>
+                    
+                    <p><span class="code">SANDWICH_TERMINAL</span><br>
+                    Sets the full path to the terminal with the necessary flags to execute a new terminal with
+                    <span class="code">$BATCHFILE</span> as a variable for the path to the batch file that will be generated by Sandwich.
+                    Settings this variable is usually only necessary if you run Linux. The default value for this variable in Linux is:
+                    
+                    <div class="code-block">
+                        /usr/bin/terminal $BATCHFILE
+                    </div>
+                    </p>
+            </div>
+    
+            <div class="document-sub-section">
+                <h2><a name="about_the_sandwichnode"></a>About the sandwichNode</h2>
+                    <p>Sandwich stores all layers and settings on a node called <b>sandwichNode</b>. It has two sets of attributes.
+                    The default ones that are required for Sandwich to operate and those that gets added each time a new render layer
+                    gets created.</p>
+                    <p>The general attributes:</p>
+                    <p><b>.globals</b> (dictionary)<br>Holds Sandwich's Globals settings.</p>
+                    <p><b>.current</b> (string)<br>Hold the name of the latest selected render layer as a string.</p>
+                    <p><b>.renderGlobals</b> (dictionary)<br>Holds a default set of render globals for each render engine.</p>
+                    
+                    <p>The render layer attributes:</p>
+                    <p><b>.&lt;renderLayer&gt;_overview</b> (string)<br>Holds the overview text.</p>
+                    <p><b>.&lt;renderLayer&gt;_visibility</b> (string)<br>Holds the visibility text.</p>
+                    <p><b>.&lt;renderLayer&gt;_shaders</b> (dictionary)<br>Holds the shader data. Each entry looks like:</p>
+                    <div class="code-block">
+                        "shader_name": "objects"
+                    </div>
+                    <p><b>.&lt;renderLayer&gt;_attributes</b> (dictionary)<br>Holds the attribute data as a dictionary. Each entry looks like:</p>
+                    <div class="code-block">
+                        "attribute_name": {"sOverrideValue": "..", "sRevertValue": "..", "sObjects": ".."}
+                    </div>
+                    <p><b>.&lt;renderLayer&gt;_settings</b> (dictionary)<br>Holds the override globals data as a dictionary. Each entry looks like:</p>
+                    <div class="code-block">
+                        "setting_name": [bool, "value1", "value2", ..]
+                    </div>
+                    <p>Where <b>bool</b> defines if override is active or not.</p>
+                    <p><b>.&lt;renderLayer&gt;_renderGlobals</b> (dictionary)<br>Holds the Render Globals overrides.</p>
+                    <p><b>.&lt;renderLayer&gt;_code</b> (dictionary)<br>Holds the override and revert code. Each entry looks like:</p>
+                    <div class="code-block">
+                        {"sOverride": "..", "sRevert": ".."}
+                    </div>
+                    
+                    
+            </div>
+            
+            <div class="document-sub-section">
+                <h2>About the source code</h2>
+                    <p>All files of Sandwich are sorted into different directories depending on their purpose. Here are the root items of Sandwich:</p>
+        
+                    <p>__init__.py<br>
+                    core/<br>
+                    data/<br>
+                    docs/<br>
+                    gui/<br>
+                    libs/<br>
+                    signals/</p>
+                    
+                    <p><b>About __init__.py</b><br>
+                    This is the startup file of Sandwich. It contains the main <span class="code">Sandwich()</span> object that will launch the entire
+                    tool using the following three files:
+                    
+                    <div class="code-block">
+                        import sandwich<br>
+                        sw = sandwich.Sandwich()<br>
+                        sw.show()<br>
+                    </div>
+                    </p>
+                    
+                    <p><b>About core/</b><br>
+                    </p>
+                    
+                    <p><b>About data/</b><br>
+                    </p>
+                    
+                    <p><b>About docs/</b><br>
+                    Contains the entire documentation, written in HTML+CSS. index.html is the main file where the documentation starts from. Subdirectory
+                    <b>images/</b> contains all images in the documentation and <b>style/</b> contains all CSS.</p>
+                    
+                    <p><b>About gui/</b><br>
+                    Contains all <span class="code">QFrames</span> and <span class="code">QDialogs</span> used in Sandwich. Each has their own file
+                    and are prefixed with frame or dialog. It's also from here that their counterparts in <b>libs/</b> and <b>signals/</b> gets
+                    imported and subclassed.</p>
+                    
+                    <p><b>About libs/</b><br>
+                    These files contains the handlers for the interface for each file in <b>gui/</b>. All files here are prefixed with ui and so are all
+                    method names within these classes.</p>
+                    
+                    <p><b>About signals/</b><br>
+                    These files contains all signals for each file in <b>gui/</b>. All files are prefixed signals and all method names are prefixed evt.</p>
+            </div>
+            <center><span style="color: rgb(140, 140, 140);"><br>Thanks for trying me out! :) /Sandwich</span></center>
+        </div>
+    </div>
+</body>
+</html>

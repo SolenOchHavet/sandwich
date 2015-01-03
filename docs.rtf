@@ -1,0 +1,148 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf360
+{\fonttbl\f0\fnil\fcharset0 LucidaGrande;}
+{\colortbl;\red255\green255\blue255;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww17740\viewh12960\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\b\fs30 \cf0 INTRODUCTION\
+
+\b0\fs22 \
+
+\b\fs24 What is Sandwich?
+\b0\fs22 \
+Sandwich is an open-source render layer manager for Maya. It's based on ideas and experiences using Andrew Chapman's fantastic 
+\b Render Pass Manager
+\b0  (http://www.technolumiere.com/software/renderpasses.html). As his plugin, Sandwich is an object name oriented manager as opposed to Maya which is connection oriented.\
+\
+
+\b\fs26 Why use Sandwich?\
+
+\b0\fs22 Sandwich gives you great overview of what each render layer actually contains and do, since it's all gathered in one window.\
+Since Sandwich is name based, it can easily be setup to apply shader, attribute and/or visibility settings to all instances of the same character, which can be handy at times you change the number of them in Maya.\
+Renders can be handled inside Sandwich by overriding Maya's workspace settings. Each render layer will be neatly placed in it's own folder to avoid name collisions.\
+Render ready scenes can also be exported to be rendered on a farm or elsewhere.\
+With Sandwich, I want to show that there are other ways of solving render layer management than Maya's connection-centric approach which at times causes more problems than solving them.\
+\
+
+\b\fs26 Background
+\b0\fs22 \
+The dream of creating Sandwich has followed (maybe haunted even?) me since at least 2009. By now (March 2012), this is actually the third rewrite of an application that previously never got finished. First attempt was in pure MEL but then Maya introduced Python and I rewrote it using Python. It was still buggy and totally ugly function programming with global variables all over the place. I left it for over a year and suddenly I got a personal project I had to do which required good render layer management. Since Maya's tool still didn't impress I decided to give Sandwich a new try. And this time, I want to share it with everybody out there. It's a way for me to say thanks and give something back to the growing cg society all around the web that have helped me in many ways over the last years.\
+\
+
+\b\fs26 Requirement
+\b0\fs22 \
+Maya 2012 and forth. Currently supports Maya Software and Mental Ray. You will need to install PyQt or PySide. Here are some suggestions on how to do that: \
+linkz..\
+\
+\
+
+\b\fs30 WALKTHROUGH\
+
+\fs26 Summary\
+<image on Sandwich>
+\b0\fs22 \
+I designed the interface of Sandwich in how I would childish break down what a render layer is made up of. \
+1) Shows a list of all existing render layers within the scene. \
+2) "Overview" is a big text field where you can write down layer description, notes, TODOs etc. \
+3) "Visibility" is where you define everything that should be visible for the current layer. \
+4) "Shaders" is where you add all shaders you wish to use for the layer and specify for each what they should contain. \
+5) "Attributes" is somewhat similar to "Shaders", you add all attributes you want to use for the layer and then specify which they should affect along with the values that should be changed (ex. to set render stats).\
+6) "Output Settings" gives you some Sandwich settings that can be set on each render layer. Default they point to Globals (see #11 for more info). \
+7) "Render Globals" shows all render globals settings that have been overridden at the current render layer. This is because Sandwich keeps a record for a default values for all render globals settings. Those defaults can at any time can be updated in Globals (see #11 for more info).\
+8) "MEL" lets you create additional functions and procedures that must be executed on a render layer.\
+9) "Render\'85" is Sandwich's approach for rendering render layers easily on your own computer.\
+10) "Export\'85" is used for exporting render ready scenes to be used to send away on the farm.\
+11) "Globals"\
+\
+Notes!\
+* Buttons ending with three dots (ex "New Layer...") means that a new dialogue will show up before the final action is executed. This gives you the option of canceling the process and also decreases the chances that you hit a button by accident (ex "Delete Layer...").\
+* In order to fully understand how Sandwich thinks and works, pay attention to any "Technical Explanation" notes you see in this documentation. And don't worry, they are less technical than the name implies =)\
+\
+
+\b\fs26 Starting Sandwich\
+
+\b0\fs22 The first launch of Sandwich can be a bit slow. It has to begin by checking mental ray is loaded. If not it has to loaded which will take a few seconds.\
+\
+	Technical Explanation\
+	First, it checks if mental ray is loaded. If not, it will load the plugin. This part is pretty fast. However, although mental ray is loaded\
+	it's render globals nodes have not yet been created. This usually happens when you select it for the first time in Render Globals. So\
+	Sandwich has to execute a new MEL-scripts mental ray uses to create those nodes. That will for sure take a few seconds.\
+\
+When Sandwich is launched within a scene it will check for the existence of a node called 
+\b sandwichNode
+\b0 . It is a simple transform node it uses for keeping track of all render layers and their settings. If this node gets deleted at anytime, Sandwich will be reseted.\
+If no 
+\b sandwichNode
+\b0  was found when Sandwich launches, a new one will be created. Make sure you never use that particular name for any objects in your scene.\
+Also, if no sandwichNode existed previously, Sandwich will launch Globals for you. You will see the following dialogue:\
+\
+<image on Globals>\
+\
+
+\b Default Engine
+\b0  sets the default render engine for this scene. This setting can be overridden at render layer.\
+
+\b Output Renders
+\b0  is used to point to a base path which all renders will be outputted to. From that particular folder, Sandwich will create it's own sets of directories to help you organize all render layers (!!). You must specify this folder if you intend to use Sandwich's approach to render layers.\
+
+\b Output Scenes
+\b0  is used to point to a base path which all scenes will be exported to in a render ready state. This field must have a default path.\
+
+\b Default Camera
+\b0  is which camera that should be used by default when rendering a layer. This setting can be overridden at render layer.\
+
+\b Default Resolution
+\b0  is used to set the default resolution for each render layer. This setting can be overridden at render layer.\
+
+\b Default Range
+\b0  sets which range to be used by default for each render layer. This setting can be overridden at render layer.\
+
+\b Settings "Import references into the scene on export"
+\b0 . Because of something I think is a Maya bug, I could not render more than a dozen reference files within my scene without some of them disappearing in the renders. So this optional setting forces Sandwich to import all references into the scene before export. Use it only if you need it.\
+
+\b Terminal App
+\b0  shows the command needed to run the file $BATCHFILE in a terminal. If you use any Linux distro you have to adjust this command but you must leave the part "$BATCHFILE" as it is, since this variable is changed into a batch script path when rendering with Sandwich.\
+\
+When saving the Globals for the first time, Sandwich will also save a copy of the current Render Globals settings for all supported render engines. The defaults can at any time be edited and resaved by selecting "masterLayer", enter Globals and click the  "Save Default Render Globals" button.\
+\
+	Technical Explanation\
+	The reason why Sandwich holds internal defaults for render globals is that when an artists changes them in a render layer and saves it,\
+	Sandwich can compare them with the defaults and only show the settings the artists changed in the tab "Render Globals". This is because of two reasons:\
+	* It gives you quick overview of what settings you have changed\
+	* By having defaults that are not overridden at render layer, you have the possibility to change them at any time and they will instantly affect all layers.\
+	Depending on the render globals settings you set, some are better at global than local on the render layer\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+* The "masterLayer" in Render List\
+In the left list "Render Layers" you will find all current render layers in the scene. You will always see a default layer called "masterLayer" that can never be edited. It is used to view all top level objects in the scene using lambert shading. Technical explanation:\
+\
+Take all top level objects in the scene and make them visible. Take all objects in the scene and apply the default lambert1 shader.\
+\
+Because of this approach, there are two things to keep in mind:\
+* Since ALL objects get lambert1 shader, even cameras gets it if any existing connection exists below the "mental ray" tab (Environment SHader, Lens Shader, etc). That means you will have to reapply your camera shader at the render layers you need them for now.\
+* Why only the top level objects are shown is because don't know which objects below them that are okay to be shown or not.\
+\
+* Create New Render Layer\
+To create a new Render Layer, use the "New Layer..." button\
+\
+
+\b Reference
+\b0 \
+Toolbar. Render Layers. Alla flikar.\
+\
+\
+
+\b About the Source Code\
+
+\b0 The structure and libCore.py\
+\
+\
+\
+}

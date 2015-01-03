@@ -1,0 +1,6 @@
+# Python compiled files
+*.pyc
+*.pywc
+
+# Sublime config files
+*.sublime-workspace

@@ -1,0 +1,42 @@
+TODO:
+ * Kunna best�mma sj�lv hur renderkataloger skapas innanf�r sOutputRenders!
+ * YouTube introduction! :S
+ * VRAY? =)
+ * Kunna sätta nya render globals
+ * Stöd för PySide :P
+ * borde ha en lite bättre startup som kollar om sandwich-noden ens finns eller är ändrad så att Sandwich vet vad
+ den ska göra om gränssnittet startas upp igen.
+
+CURRENT:
+ * The manual
+
+ * Comment all events, libCore and to some extent the ui files
+ * Transfer shader! Skriver eventet, behöver lägga till lite core-grejer! :D
+ * FEATURE: Introduce our concept of "Render Globals". Does NOT support animated attributes!
+ * När man switchar lager och de är satte till olika render engines, vore det inte najs om det även uppdaterades
+   i RenderView också då?
+ * Render Settings verkar försvinna efter ett tag, ex om man sätter en override på Render Engine.
+   Kanske borta redan efter nästa omstard av Sandwich?
+ * När man exporterar/renderar scener så nollställs vilken kamera som ska användas i renderView. Går det
+   att återställa?
+
+
+FUTURE:
+ * Add View-menu allowing the user to remove Toolbar, and Render Layer list to maximize the space.
+ * Make Layer-menu containing all the current layers at all times.
+ * BUG: Figure out why statusTip does not work as I thought it would.
+ * Högerklicka på ett lager för att köra "Reload Layer" (dum grej men den kan ha betydelse iom nästa sak)
+ * Checkbox för att stänga av att den ska köra ett lager bara för att man hoppar till det.
+
+
+HISTORY:
+January, 2013
+ * Köra monospace på alla textfält som har med objekt och kod att göra?! =) Även overview egentligen!
+ * Double clicka i shaders. Rename!
+ * Används shaders istället för shading groups!!
+
+December, 2012
+ * Globals: F�lt f�r terminalprogrammet med alla parametrar ! Med tanke p�
+   alla Linux-distros.. $BATCHFILE ska vara en variabel f�r v�r feta fil som
+   ska k�ras!
+ * Kunna override:a alla globals med milj�variablar! Tas bara in en g�ng!

@@ -1,0 +1,195 @@
+a, a:active, a:focus, a:visited {
+	color: rgb(135, 169, 233);
+}
+
+a:hover {
+	color: rgb(166, 194, 245);
+}
+
+body {
+	background-color: rgb(235, 235, 235);
+	color: rgb(35, 35, 35);
+	font-family: verdana, sans-serif;
+	font-size: 0.9em;
+}
+
+h1 {
+	font-size: 1.6em;
+	font-weight: normal;
+	color: rgb(135, 169, 233);
+}
+
+h2 {
+	font-size: 1.2em;
+	font-weight: normal;
+	color: #456ead;
+}
+
+img {
+	border: solid 0px white;
+}
+
+li {
+	margin-bottom: 0.5em;
+}
+/*
+th, tr, td {
+	text-align: left;
+	padding: 0px;
+	margin: 0px;
+}
+
+tr th {
+	background-color: #a0bfdc;
+	padding-top: 1em;
+	padding-right: 1.5em;
+	padding-left: 1.5em;
+	padding-bottom: .2em;
+}
+
+td {
+	background-color: #afceea;
+	padding-left: 1.5em;
+	padding-bottom: .2em;
+	padding-top: .2em;
+}
+
+table {
+	background-color: #6295c4;
+	padding: 0px;
+}*/
+
+table {
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+
+th {
+	text-align: left;
+	border: 1px solid black;
+	padding-left: 1.5em;
+	padding-right: 1.5em;
+	padding-bottom: .5em;
+	padding-top: 1em;
+}
+
+td {
+	border: 1px solid black;
+	padding-left: 1.5em;
+	padding-right: 1.5em;
+	padding-bottom: .5em;
+	padding-top: .5em;
+}
+
+
+.attention {
+	background: url(../images/attention.png) repeat;
+	/*background-color: #d3d4af;*/
+	padding-top: 0.1em;
+	padding-right: 1.8em;
+	padding-left: 1.8em;
+	padding-bottom: 0.1em;
+}
+
+/* attention title */
+.atitle {
+	font-weight: bold;
+	color: rgb(35, 35, 35); /*625c1b*/
+}
+
+.code {
+	font-family: monospace;
+	font-size: 1.4em;
+}
+
+.code-block {
+	background: url(../images/code.png) repeat;
+	/*background-color: #e5e6c2;*/
+	border: solid 1px #b0b26b;
+	font-family: monospace;
+	padding-left: 1.5em;
+	padding-right: 1.5em;
+	padding-top: 1em;
+	padding-bottom: 1em;
+	font-size: 1.3em;
+}
+
+.document {
+	width: 700px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.document-section {
+	margin-top: 2em;
+}
+
+.document-sub-section {
+	padding-bottom: 0.3em;
+	padding-top: 0px;
+}
+
+.document-title {
+	font-size: 2.5em;
+	margin-top: 1em;
+	margin-bottom: 0px;
+	text-align: center;
+}
+
+.document-subtitle {
+	font-size: 1em;
+	text-align: center;
+	margin-top: 0.5em;
+	margin-bottom: 4em;
+}
+
+.img-comment {
+	margin: 0px;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	font-style: italic;
+	font-size: 0.8em;
+}
+
+.nolist {
+	list-style: none;
+}
+
+.toc-title {
+	text-align: center;
+	font-size: 1.5em;
+}
+
+/* Table of content CSS */
+#toc {
+	list-style: none;
+	margin-bottom: 4em;
+	width: 500px;
+	margin-left: auto;
+	margin-right: auto;
+}
+#toc li {
+	background: url(../images/dot.gif) repeat-x bottom left;
+	overflow: hidden;
+	padding-bottom: 2px;
+	margin-left:-40px;
+	padding-left:0px;
+
+}
+#toc a,
+#toc span {
+	display: inline-block;
+	background: rgb(235, 235, 235);
+	position: relative;
+	bottom: -4px;
+}
+#toc a {
+	float: right;
+	padding: 0 0 3px 2px;
+}
+#toc span {
+	float: left;
+	padding: 0 2px 3px 0;
+}
