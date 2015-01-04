@@ -15,7 +15,7 @@ import maya.cmds as mc
 class Node(object):
     def __init__(self, parent):
         self.parent = parent
-        self.sMayaNode = "sandwichNode"
+        self.sSwNode = "sandwichNode"
 
         self.lstLayerAttrs = ("overview", "visibility", "shaders", 
             "attributes", "globals", "settings", "code", "renderGlobals")
@@ -23,20 +23,15 @@ class Node(object):
         # We create the Maya node at the initialization of the core if it is not
         # yet created
         self.create()
-
         self.createGlobalsAttributes()
-
-        # If the Maya node already exists it might contain render layers data.
-        # Load it in that case
-        self.load()
 
     def create(self):
         """
         Creates our Maya node if we do not have it yet
         """
 
-        if not mc.objExists(self.sMayaNode):
-            mc.createNode("transform", name = self.sMayaNode)
+        if not mc.objExists(self.sSwNode):
+            mc.createNode("transform", name = self.sSwNode)
 
             # Also, mark this as first startup
             self.parent.bIsFirstRun = True
@@ -47,14 +42,14 @@ class Node(object):
         attribute for saving the latest selected layer
         """
 
-        if not mc.objExists(self.sMayaNode + ".globals"):
-            mc.addAttr(self.sMayaNode, ln = "globals", dt = "string")
+        if not mc.objExists(self.sSwNode + ".globals"):
+            mc.addAttr(self.sSwNode, ln = "globals", dt = "string")
 
-        if not mc.objExists(self.sMayaNode + ".current"):
-            mc.addAttr(self.sMayaNode, ln = "current", dt = "string")
+        if not mc.objExists(self.sSwNode + ".current"):
+            mc.addAttr(self.sSwNode, ln = "current", dt = "string")
 
-        if not mc.objExists(self.sMayaNode + ".renderGlobals"):
-            mc.addAttr(self.sMayaNode, ln = "renderGlobals", dt = "string")
+        if not mc.objExists(self.sSwNode + ".renderGlobals"):
+            mc.addAttr(self.sSwNode, ln = "renderGlobals", dt = "string")
 
     def createLayer(self, sLayerName):
         """
@@ -67,48 +62,18 @@ class Node(object):
         for sSuffix in self.lstLayerAttrs:
             sAttr = sLayerName + "_" + sSuffix
 
-            if not mc.objExists(self.sMayaNode + "." + sAttr):
-                mc.addAttr(self.sMayaNode, ln = sAttr, dt = "string")
+            if not mc.objExists(self.sSwNode + "." + sAttr):
+                mc.addAttr(self.sSwNode, ln = sAttr, dt = "string")
 
-    def createLayerAttributes(self):
+    def deleteLayer(self, sLayerName):
         """
-        Creates all necessary attributes in order to store our current
-        layer's data
-
-        TODO: DEPRICATED!
+        Delete render layer sLayerName from the node by removing all of 
+        it's attributes
         """
 
-        lstData = ("_overview", "_visibility", "_shaders", "_attributes",
-                   "_globals", "_settings", "_code", "_renderGlobals")
-
-        # Create the attributes that does not exist already. Although this
-        # approach should not be necessary, lets just be safe
-        for sAttrSuffix in lstData:
-            if not mc.objExists(self.sMayaNode + "." + self.parent.sCurrentLayer + sAttrSuffix):
-                mc.addAttr(self.sMayaNode, ln = self.parent.sCurrentLayer + sAttrSuffix,
-                    dt = "string")
-
-    def current(self):
-        """
-        Returns the last selected render layer, which has been stored in the
-        sandwichNode. If no render layer has been specified, then return the
-        name of the master layer
-        """
-
-        return mc.getAttr(self.sMayaNode + ".current") or "masterLayer"
-
-    def deleteLayer(self, sRenderLayerName):
-        """
-        Delete render layer sRenderLayerName from the node by removing
-        all of it's attributes
-        """
-
-        lstData = ("overview", "visibility", "shaders", "attributes", "code",
-            "globals", "settings", "renderGlobals")
-
-        for sAttr in lstData:
-            if mc.objExists(self.sMayaNode + "." + sRenderLayerName + "_" + sAttr):
-                mc.deleteAttr(self.sMayaNode, at = sRenderLayerName + "_" + sAttr)
+        for sSuffix in self.lstLayerAttrs:
+            if mc.objExists(self.sSwNode + "." + sLayerName + "_" + sSuffix):
+                mc.deleteAttr(self.sSwNode, at = sLayerName + "_" + sSuffix)
 
     def getLayerAttributesData(self, sRenderLayerName):
         """
@@ -116,90 +81,83 @@ class Node(object):
         section as a dictionary
         """
 
-        return eval(mc.getAttr(self.sMayaNode + "." + sRenderLayerName + "_attributes"))
+        return eval(mc.getAttr(self.sSwNode + "." + sRenderLayerName + "_attributes"))
 
-    def load(self):
+    def globals(self):
         """
-        Loads all data from the Sandwich node to create all layers and settings.
+        Returns the default Sandwich globals
+        """
+
+        sOutput = mc.getAttr(self.sSwNode + ".globals")
+
+        if sOutput:
+            return eval(sOutput)
+
+        return {}
+
+    def layers(self):
+        """
+        Returns a dictionary of all layers that are currently stored on the 
+        Sandwich node
         """
 
         dOutput = {}
 
-        lstAttrs = mc.listAttr(self.sMayaNode, string = "*_overview") or []
+        lstAttrs = mc.listAttr(self.sSwNode, string = "*_overview") or []
 
         for sAttr in lstAttrs:
-            iLastUnderScore = sAttr.rfind("_")
-            sRenderLayer = sAttr[:iLastUnderScore]
+            sRenderLayer = sAttr.rsplit("_", 1)[0]
 
             # Add the render layer. This will make it currently selected so we
             # can use the core's different function to load data
             dOutput[sRenderLayer] = {}
 
             # Load the overview data
-            sData = mc.getAttr(self.sMayaNode + "." +
-                self.parent.sCurrentLayer + "_overview")
+            sData = mc.getAttr(self.sSwNode + "." + sRenderLayer + 
+                "_overview")
 
             dOutput[sRenderLayer]["sComments"] = sData
 
             # Load the visibility data
-            sData = mc.getAttr(self.sMayaNode + "." +
-                self.parent.sCurrentLayer + "_visibility")
+            sData = mc.getAttr(self.sSwNode + "." + sRenderLayer + 
+                "_visibility")
 
             dOutput[sRenderLayer]["sVisibility"] = sData
 
             # Load the shaders data
-            dData = eval(mc.getAttr(self.sMayaNode + "." +
-                self.parent.sCurrentLayer + "_shaders"))
+            dData = eval(mc.getAttr(self.sSwNode + "." + sRenderLayer + 
+                "_shaders"))
 
             dOutput[sRenderLayer]["dShaders"] = dData
 
             # Load the attributes data
-            dData = eval(mc.getAttr(self.sMayaNode + "." +
-                self.parent.sCurrentLayer + "_attributes"))
+            dData = eval(mc.getAttr(self.sSwNode + "." + sRenderLayer + 
+                "_attributes"))
 
             dOutput[sRenderLayer]["dAttributes"] = dData
 
             # Load the render settings
-            dData = eval(mc.getAttr(self.sMayaNode + "." +
-                self.parent.sCurrentLayer + "_settings"))
+            dData = eval(mc.getAttr(self.sSwNode + "." + sRenderLayer + 
+                "_settings"))
 
             dOutput[sRenderLayer]["dRenderSettings"] = dData
 
             # Load the render globals
-            dData = eval(mc.getAttr(self.sMayaNode + "." +
-                self.parent.sCurrentLayer + "_renderGlobals"))
+            dData = eval(mc.getAttr(self.sSwNode + "." + sRenderLayer + 
+                "_renderGlobals"))
 
             dOutput[sRenderLayer]["dRenderGlobals"] = dData
 
             # Load the code data
-            dData = eval(mc.getAttr(self.sMayaNode + "." +
-                self.parent.sCurrentLayer + "_code"))
+            dData = eval(mc.getAttr(self.sSwNode + "." + sRenderLayer + 
+                "_code"))
 
-            #self.parent.layer().setOverrideCode(dData["sOverride"])
-            #self.parent.layer().setRevertCode(dData["sRevert"])
+            dOutput[sRenderLayer]["sOverrideCode"] = dData["sOverrideCode"]
+            dOutput[sRenderLayer]["sOverrideMode"] = dData["sOverrideMode"]
+            dOutput[sRenderLayer]["sRevertCode"] = dData["sRevertCode"]
+            dOutput[sRenderLayer]["sRevertMode"] = dData["sRevertMode"]
 
-        # Load globals if any is saved or create defaults
-        sData = mc.getAttr(self.sMayaNode + ".globals")
-
-        if sData:
-            self.parent.setGlobals(eval(sData))
-
-        else:
-            self.parent.addGlobals()
-
-        # Load default render globals
-        # sData = mc.getAttr(self.sMayaNode + ".renderGlobals")
-
-        # if sData:
-        #     self.parent.setRenderGlobals(eval(sData))
-        #     self.parent.setDefaultRenderGlobals(eval(sData))
-
-        # else:
-        #     self.parent.addDefaultRenderGlobals()
-
-        #     # Save the new default render globals back to the Sandwich node
-        #     mc.setAttr(self.sMayaNode + ".renderGlobals", unicode(self.parent.dDefaultRenderGlobals),
-        #         type = "string")
+        return dOutput
 
     def loadCurrentLayer(self):
         """
@@ -207,7 +165,7 @@ class Node(object):
         executed once on each Sandwich startup to select the last selected layer
         """
 
-        sCurrentLayer = mc.getAttr(self.sMayaNode + ".current")
+        sCurrentLayer = mc.getAttr(self.sSwNode + ".current")
 
         if sCurrentLayer in self.parent.getLayers():
             self.parent.layer().select(sCurrentLayer)
@@ -215,27 +173,36 @@ class Node(object):
         else:
             self.parent.layer().select(self.parent.sMasterLayer)
 
-    def renameLayer(self, sOldRenderLayerName, sNewRenderLayerName):
+    def renameLayer(self, sOldLayerName, sNewLayerName):
         """
         Renames the layer on node level, which means rename the attributes
         that are used for storing all parts of the render layer.
         """
 
-        lstData = ("overview", "visibility", "shaders", "attributes",
-            "code", "globals", "settings", "renderGlobals")
-
-        for sAttr in lstData:
+        for sSuffix in self.lstLayerAttrs:
             # Make sure each attribute still exists before renaming them
-            if mc.objExists(self.sMayaNode + "." + sOldRenderLayerName + "_" + sAttr):
-                mc.renameAttr(self.sMayaNode + "." + sOldRenderLayerName + "_" + sAttr,
-                    sNewRenderLayerName + "_" + sAttr)
+            if mc.objExists(self.sSwNode + "." + sOldLayerName + "_" + sSuffix):
+                mc.renameAttr(self.sSwNode + "." + sOldLayerName + "_" + sSuffix,
+                    sNewLayerName + "_" + sSuffix)
+
+    def renderGlobals(self):
+        """
+        Returns the default render globals for the master layer
+        """
+
+        sOutput = mc.getAttr(self.sSwNode + ".renderGlobals")
+
+        if sOutput:
+            return eval(sOutput)
+
+        return {}
 
     def save(self, oLayer):
         """
         Saves the specified render layer object to the node
         """
 
-        sBasePath = self.sMayaNode + "." + oLayer.layerName()
+        sBasePath = self.sSwNode + "." + oLayer.layerName()
 
         # Make sure all attributes exists before saving anything
         self.createLayer(oLayer.layerName())
@@ -264,74 +231,38 @@ class Node(object):
             type = "string")
 
         # Save the code data to the node
-        dData = {"sOverrideCode": oLayer.overrideCode(), 
-            "sOverrideMode": oLayer.overrideMode(), 
-            "sRevertCode": oLayer.revertCode(), 
-            "sRevertMode": oLayer.revertMode()}
-        mc.setAttr(sBasePath + "_code", unicode(dData), type = "string")
+        mc.setAttr(sBasePath + "_code", unicode(oLayer.code()), type = "string")
 
-    def saveCurrentLayer(self):
+    def saveSelected(self, sLayerName):
         """
-        Saves the currently selected layer to Sandwich's node. This value will
-        only be retrieved when Sandwich launches to select the last active layer.
+        Saves the specified layer as the selected on to Sandwich's node. This 
+        is only useful during the next launch of Sandwich, which will remember
+        which was the latest selected layer
         """
 
-        mc.setAttr(self.sMayaNode + ".current", self.parent.sCurrentLayer, type = "string")
+        mc.setAttr(self.sSwNode + ".current", sLayerName, type = "string")
 
-    def saveDefaultRenderGlobals(self):
+    def saveDefaultRenderGlobals(self, dData = {}):
         """
-        Save the default Render Globals.
+        Save the default Render Globals
         """
 
-        mc.setAttr(self.sMayaNode + ".renderGlobals", unicode(self.parent.dRenderGlobals),
+        mc.setAttr(self.sSwNode + ".renderGlobals", unicode(dData), 
             type = "string")
 
-    def saveGlobals(self):
+    def saveGlobals(self, dData = {}):
         """
         Saves Sandwich's settings (called Globals) to the node
         """
 
-        dData = self.parent.getGlobals()
-
         # Save the globals data to the node
-        mc.setAttr(self.sMayaNode + ".globals", unicode(dData), type = "string")
+        mc.setAttr(self.sSwNode + ".globals", unicode(dData), type = "string")
 
-    def saveLayer(self, sRenderLayer = None):
+    def selected(self):
         """
-        Saves the specified render layer sRenderLayer. If sRenderLayer is None, then
-        the currently active layer will be saved.
-
-        TODO: DEPRICATED, use save() instead!
+        Returns the last selected render layer, which has been stored in the
+        sandwichNode. If no render layer has been specified, then return the
+        name of the master layer
         """
 
-        sRenderLayer = sRenderLayer or self.parent.sCurrentLayer
-
-        # Save the overview data to the node
-        mc.setAttr(self.sMayaNode + "." + sRenderLayer + "_overview",
-            self.parent.layer(sRenderLayer).comments(), type = "string")
-
-        # Save the visibility data to the node
-        mc.setAttr(self.sMayaNode + "." + sRenderLayer + "_visibility",
-            self.parent.layer(sRenderLayer).visibility(), type = "string")
-
-        # Save the shaders data to the node
-        mc.setAttr(self.sMayaNode + "." + sRenderLayer + "_shaders",
-            unicode(self.parent.layer(sRenderLayer).shaders()), type = "string")
-
-        # Save the attributes data to the node
-        mc.setAttr(self.sMayaNode + "." + sRenderLayer + "_attributes",
-            unicode(self.parent.layer(sRenderLayer).attributes(True)), type = "string")
-
-        # Save the output settings data to the node
-        mc.setAttr(self.sMayaNode + "." + sRenderLayer + "_settings",
-            unicode(self.parent.layer(sRenderLayer).renderSettings()), type = "string")
-
-        # Save the render globals data to the node
-        mc.setAttr(self.sMayaNode + "." + sRenderLayer + "_renderGlobals",
-            unicode(self.parent.layer(sRenderLayer).renderGlobals()), type = "string")
-
-        # Save the code data to the node
-        dData = {"sOverride": self.parent.layer(sRenderLayer).overrideCode(),
-            "sRevert": self.parent.layer(sRenderLayer).revertCode()}
-        mc.setAttr(self.sMayaNode + "." + sRenderLayer + "_code",
-            unicode(dData), type = "string")
+        return mc.getAttr(self.sSwNode + ".current") or "masterLayer"

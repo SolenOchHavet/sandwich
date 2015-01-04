@@ -96,6 +96,16 @@ class Layer(object):
         else:
             return self.dLayers[self.layerName()]["dAttributes"]
 
+    def code(self):
+        """
+
+        """
+
+        dLayer = self.dLayers[self.layerName()]
+
+        return {dLayer["sOverrideCode"], dLayer["sOverrideMode"],
+            dLayer["sRevertCode"], dLayer["sRevertMode"]}
+
     def comments(self):
         """
         Returns the comments specified for the current layer
@@ -300,12 +310,12 @@ class Layer(object):
         # if sLayerName in self.dLayers.keys():
         #     self.sCurrentLayer = sLayerName
 
-        #     self.node.saveCurrentLayer()
+        #     self.node.saveSelected(sLayerName)
 
         # elif re.search("^" + self.sMasterLayer + "$", sLayerName, re.IGNORECASE):
         #     self.sCurrentLayer = ""
 
-        #     self.node.saveCurrentLayer()
+        #     self.node.saveSelected("masterLayer")
 
         # else:
         #     return "Can't select layer \"%s\" since it does not exists!" % (sLayerName)

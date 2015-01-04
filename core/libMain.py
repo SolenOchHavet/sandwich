@@ -529,7 +529,31 @@ class MainCore(object):
         self.sCurrentLayer = sLayerName
 
     def reload(self):
-        self.node.load()
+        # Load all layers available from the node
+        self.__layer.dLayers.update(self.node.layers())
+
+        # Load the render globals. If no render globals exists yet, then create
+        # new that will directly be stored in the Sandwich node
+        dData = self.node.renderGlobals()
+
+        if not dData:
+            # Because no default render globals exists yet, create them and 
+            # store them on the node
+            dData = self.utils.getRenderGlobals()
+            self.node.saveDefaultRenderGlobals(dData)
+
+        self.setRenderGlobals(dData)
+        self.setDefaultRenderGlobals(dData)
+
+        # Load the Sandwich globals
+        dData = self.node.globals()
+
+        if sData:
+            self.setGlobals(dData)
+
+        else:
+            self.addGlobals()
+            self.node.saveGlobals(self.dGlobals)
 
     def reloadEngines(self):
         self.lstEngines = []
