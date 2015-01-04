@@ -611,7 +611,7 @@ class MainCore(object):
             self.dLayers[self.sCurrentLayer]["dShaders"][sShaderName]
 
         # Re-save the specified render layer into Sandwich's scene node
-        self.node.saveLayer(sRenderLayer)
+        self.node.save(self.layer(sRenderLayer))
 
     def translateMentalRayAttr(self, sNodeWithAttr):
         sNodeWithAttr = re.sub("\$MG", "mentalrayGlobals", sNodeWithAttr)

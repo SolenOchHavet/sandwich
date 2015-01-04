@@ -212,7 +212,7 @@ class Layer(object):
             self.sCurrentLayer = sNewLayerName
 
         self.dLayers[sNewLayerName] = self.dLayers.pop(sOldLayerName)
-        self.parent.node.renameLayer(sOldLayerName, sNewLayerName)
+        self.node.renameLayer(sOldLayerName, sNewLayerName)
 
     def renameAttribute(self, sOldAttributeName, sNewAttributeName):
         """
@@ -282,9 +282,7 @@ class Layer(object):
 
         # Make sure we have attributes on our save node that represents our
         # current layer
-        self.parent.node.createLayer()
-
-        self.parent.node.saveLayer()
+        self.node.save(self)
 
     def select(self, sLayerName):
         self.sCurrentLayer = sLayerName
@@ -302,12 +300,12 @@ class Layer(object):
         # if sLayerName in self.dLayers.keys():
         #     self.sCurrentLayer = sLayerName
 
-        #     self.parent.node.saveCurrentLayer()
+        #     self.node.saveCurrentLayer()
 
         # elif re.search("^" + self.sMasterLayer + "$", sLayerName, re.IGNORECASE):
         #     self.sCurrentLayer = ""
 
-        #     self.parent.node.saveCurrentLayer()
+        #     self.node.saveCurrentLayer()
 
         # else:
         #     return "Can't select layer \"%s\" since it does not exists!" % (sLayerName)

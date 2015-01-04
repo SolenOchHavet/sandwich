@@ -230,6 +230,46 @@ class Node(object):
                 mc.renameAttr(self.sMayaNode + "." + sOldRenderLayerName + "_" + sAttr,
                     sNewRenderLayerName + "_" + sAttr)
 
+    def save(self, oLayer):
+        """
+        Saves the specified render layer object to the node
+        """
+
+        sBasePath = self.sMayaNode + "." + oLayer.layerName()
+
+        # Make sure all attributes exists before saving anything
+        self.createLayer(oLayer.layerName())
+
+        # Save the overview data to the node
+        mc.setAttr(sBasePath + "_overview", oLayer.comments(), type = "string")
+
+        # Save the visibility data to the node
+        mc.setAttr(sBasePath + "_visibility", oLayer.visibility(),
+            type = "string")
+
+        # Save the shaders data to the node
+        mc.setAttr(sBasePath + "_shaders", unicode(oLayer.shaders()), 
+            type = "string")
+
+        # Save the attributes data to the node
+        mc.setAttr(sBasePath + "_attributes", unicode(oLayer.attributes(True)),
+            type = "string")
+
+        # Save the output settings data to the node
+        mc.setAttr(sBasePath + "_settings", unicode(oLayer.renderSettings()),
+            type = "string")
+
+        # Save the render globals data to the node
+        mc.setAttr(sBasePath + "_renderGlobals", unicode(oLayer.renderGlobals()),
+            type = "string")
+
+        # Save the code data to the node
+        dData = {"sOverrideCode": oLayer.overrideCode(), 
+            "sOverrideMode": oLayer.overrideMode(), 
+            "sRevertCode": oLayer.revertCode(), 
+            "sRevertMode": oLayer.revertMode()}
+        mc.setAttr(sBasePath + "_code", unicode(dData), type = "string")
+
     def saveCurrentLayer(self):
         """
         Saves the currently selected layer to Sandwich's node. This value will
@@ -261,7 +301,7 @@ class Node(object):
         Saves the specified render layer sRenderLayer. If sRenderLayer is None, then
         the currently active layer will be saved.
 
-        TODO: DEPRICATED
+        TODO: DEPRICATED, use save() instead!
         """
 
         sRenderLayer = sRenderLayer or self.parent.sCurrentLayer

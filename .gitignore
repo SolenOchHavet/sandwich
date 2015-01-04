@@ -4,3 +4,6 @@
 
 # Sublime config files
 *.sublime-workspace
+
+# Mac files
+*.DS_Store
