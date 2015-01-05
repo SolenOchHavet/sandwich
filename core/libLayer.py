@@ -294,8 +294,8 @@ class Layer(object):
         # current layer
         self.node.save(self)
 
-    def select(self, sLayerName):
-        self.sCurrentLayer = sLayerName
+    def select(self, sLayerName = None):
+        self.sCurrentLayer = sLayerName or self.sOverrideLayer
 
     def set(self, sLayerName = None):
         """

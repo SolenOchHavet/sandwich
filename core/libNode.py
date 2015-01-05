@@ -13,9 +13,9 @@ import maya.cmds as mc
 
 
 class Node(object):
-    def __init__(self, parent):
-        self.parent = parent
+    def __init__(self):
         self.sSwNode = "sandwichNode"
+        self.bIsFirstRun = False
 
         self.lstLayerAttrs = ("overview", "visibility", "shaders", 
             "attributes", "globals", "settings", "code", "renderGlobals")
@@ -34,7 +34,7 @@ class Node(object):
             mc.createNode("transform", name = self.sSwNode)
 
             # Also, mark this as first startup
-            self.parent.bIsFirstRun = True
+            self.bIsFirstRun = True
 
     def createGlobalsAttributes(self):
         """
@@ -94,6 +94,9 @@ class Node(object):
             return eval(sOutput)
 
         return {}
+
+    def isFirstRun(self):
+        return self.bIsFirstRun
 
     def layers(self):
         """
@@ -158,20 +161,6 @@ class Node(object):
             dOutput[sRenderLayer]["sRevertMode"] = dData["sRevertMode"]
 
         return dOutput
-
-    def loadCurrentLayer(self):
-        """
-        Loads the last selected layer from Sandwich's node. This method is only
-        executed once on each Sandwich startup to select the last selected layer
-        """
-
-        sCurrentLayer = mc.getAttr(self.sSwNode + ".current")
-
-        if sCurrentLayer in self.parent.getLayers():
-            self.parent.layer().select(sCurrentLayer)
-
-        else:
-            self.parent.layer().select(self.parent.sMasterLayer)
 
     def renameLayer(self, sOldLayerName, sNewLayerName):
         """

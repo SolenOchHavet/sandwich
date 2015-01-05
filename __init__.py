@@ -109,7 +109,7 @@ class Sandwich(QMainWindow):
 
         # If first run, force Sandwich to show Globals where user has
         # to confirm the settings
-        if self.core.isFirstRun():
+        if self.core.node.isFirstRun():
             self.showGlobals(True)
 
     def showAbout(self):

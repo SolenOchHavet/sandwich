@@ -49,14 +49,14 @@ class MainCore(object):
 
         self.io = libIO.IOCore(self)
         self.utils = libUtils.Utils(self)
-        self.node = libNode.Node(self)
+        self.node = libNode.Node()
         self.ui = libUI.UICore(self)
         self.__layer = libLayer.Layer(self)
 
         self.reIsLight = re.compile("Light$")
 
         # Post actions that have to take place after the initialization of above classes
-        self.node.loadCurrentLayer()
+        self.layer(self.node.selected()).select()
 
     def addDefaultRenderGlobals(self):
         """
@@ -473,9 +473,6 @@ class MainCore(object):
         Launches the Help page for Sandwich in an Internet browser
         """
 
-    def isFirstRun(self):
-        return self.bIsFirstRun
-
     def layer(self, sLayerName = None):
         """
         Returns the Layer object for the specified layer. If no layer has been
@@ -602,9 +599,6 @@ class MainCore(object):
 
     def setDefaultRenderGlobals(self, dData):
         self.dDefaultRenderGlobals = dData
-
-    def setFirstRun(self, bState):
-        self.bIsFirstRun = bState
 
     def setGlobals(self, dData):
         self.dGlobals = dData
