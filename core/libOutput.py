@@ -17,7 +17,7 @@ import subprocess as sub
 import maya.cmds as mc
 
 
-class IOCore(object):
+class Output(object):
     def __init__(self, parent = None):
         self.parent = parent
 
@@ -42,7 +42,7 @@ class IOCore(object):
         sExportPath = self.parent.getGlobalsValue("sOutputScenes")
 
         for sRenderLayer in self.parent.getLayers(bIncludeMasterLayer = False):
-            sFileName = self.getSceneName()
+            sFileName = self.sceneName()
 
             dOutput[sRenderLayer] = {
                 "sFileName": sFileName + "_" + sRenderLayer,
@@ -73,13 +73,7 @@ class IOCore(object):
         sExportPath = self.parent.getGlobalsValue("sOutputScenes")
         sRenderPath = self.parent.getGlobalsValue("sOutputRenders")
 
-        sFileName = mc.file(query = True, sn = True, shortName = True)
-
-        if sFileName:
-            sFileName = re.sub("\.[a-z, A-Z]+$", "", sFileName, count = 1)
-
-        else:
-            sFileName = "untitled"
+        sFileName = self.sceneName()
 
         # Retrieve camera for sRenderLayer either from the layer level or
         # the global layer
@@ -154,21 +148,6 @@ class IOCore(object):
                 "sRenderEngine": sRenderEngine,
                 }
 
-    def getSceneName(self):
-        """
-        Returns the scene name except the file extension as a string.
-        """
-
-        sFileName = mc.file(query = True, sn = True, shortName = True)
-
-        if sFileName:
-            sFileName = re.sub("\.[a-z, A-Z]+$", "", sFileName, count = 1)
-
-        else:
-            sFileName = "untitled"
-
-        return sFileName
-
     def export(self, lstRenderLayers, bAsBinary = False, bAsAscii = False):
         """
         Exports a list of render layers either as Maya Binary or Maya Ascii.
@@ -187,7 +166,7 @@ class IOCore(object):
         # Put together the full export path with file name but no file extension
         # yet
         sExportPath = self.parent.getGlobalsValue("sOutputScenes")
-        sFileName = self.getSceneName()
+        sFileName = self.sceneName()
 
         if not os.path.exists(sExportPath):
             os.makedirs(sExportPath)
@@ -211,7 +190,8 @@ class IOCore(object):
             if bSettingImportRefs:
                 self.parent.utils.mergeReferences()
                 sSavedFile = self.saveFile(sRenderLayerPath, bAsBinary, bAsAscii)
-                self.openFile(sSavedTemp)
+                
+                mc.file(sSavedTemp, open = True)
 
             else:
                 sSavedFile = self.saveFile(sRenderLayerPath, bAsBinary, bAsAscii)
@@ -246,7 +226,7 @@ class IOCore(object):
 
         # Variables
         sCmds = self.sFileHeader
-        sFileName = self.getSceneName()
+        sFileName = self.sceneName()
 
         # The batch file will be put inside the same folder as the scenes are
         # exported to
@@ -341,15 +321,6 @@ class IOCore(object):
 
         print "Sandwich: Executed the render command: " + sRunCmd
 
-    def openFile(self, sFullPath):
-        """
-        Opens specified Maya file in a new scene.
-
-        sFullPath specifies the full path to the file.
-        """
-
-        mc.file(sFullPath, open = True)
-
     def saveFile(self, sFullPath, bAsBinary = False, bAsAscii = False):
         """
         Saves file into a Maya Ascii or Binary file.
@@ -374,3 +345,18 @@ class IOCore(object):
 
         except:
             return ""
+
+    def sceneName(self):
+        """
+        Returns the scene name except the file extension
+        """
+
+        sFileName = mc.file(query = True, sn = True, shortName = True)
+
+        if sFileName:
+            sFileName = sFileName.rsplit(".", 1)[0]
+
+        else:
+            sFileName = "untitled"
+
+        return sFileName

@@ -273,81 +273,6 @@ class Utils(object):
 
         return lstOutput
 
-    def getRenderGlobals(self):
-        """
-        Returns a dictionary with an entry for each render engine which 
-        contains the current render globals for each engine.
-        """
-
-        dOutput = {}
-
-        for oEngine in self.parent.engines():
-            sRenderEngine = oEngine.engineName()
-
-            # Reset the render globals for the specified engine
-            dOutput[sRenderEngine] = []
-
-            # Iterate through all render globals nodes for the render engine
-            for lstNode in oEngine.nodes():
-                # For each render globals node retrieve all attributes as short names and save them along with their
-                # current state
-                for sAttr in mc.listAttr(lstNode[0], shortNames = True):
-                    # Skip all attribute names that contains dots. I don't know why they are included but they gives
-                    # you a lot of trouble
-                    if sAttr.count("."):
-                        continue
-
-                    # Begin by dividing the attributes into single and compound (multi) attributes
-                    if not mc.attributeQuery(sAttr, node = lstNode[0], numberOfChildren = True):
-                        # Attribute is single attribute
-
-                        # Check if it is a normal or message attribute
-                        if not mc.attributeQuery(sAttr, node = lstNode[0], message = True):
-                            # This is a normal attribute, the easy ones
-                            dOutput[sRenderEngine].append((lstNode[1] + "." + sAttr, mc.getAttr(lstNode[0] + "." + sAttr)))
-
-                        else:
-                            pass
-                            # Because this is a message attribute, we will store a list of all outgoing connections from
-                            # this attribute so we can later restore it
-                            #lstConnection = mc.connectionInfo(lstNode[0] + "." + sAttr, destinationFromSource = True)
-                            #if not lstConnection:
-                            #    lstConnection = []
-
-                            #dOutput[sRenderEngine].append((lstNode[1] + "." + sAttr, lstConnection))
-
-                    else:
-                        # Attribute is a compound
-
-                        # Since we can encounter compound attributes we have to make sure we exclude their variants
-                        # with one dot in their attribute names. I don't know why Maya even displays them..
-                        #if sAttr.count(".") >= 1:
-                        #    continue
-
-                        sAttrPath = lstNode[0] + "." + sAttr
-                        sAttrType = mc.getAttr(lstNode[0] + "." + sAttr, type = True)
-
-                        lstMultiIndices = mc.getAttr(lstNode[0] + "." + sAttr, multiIndices = True)
-                        if lstMultiIndices:
-                            for iIndex in lstMultiIndices:
-                                sCompoundPath = "%s.%s[%s]" % (lstNode[0], sAttr, iIndex)
-                                lstMulti = mc.listAttr(sCompoundPath, multi = True, sn = True)
-
-                                for sAttrInMulti in lstMulti[1:]:
-                                    sCompoundPath = "%s.%s" % (lstNode[0], sAttrInMulti)
-
-                                    dOutput[sRenderEngine].append(
-                                        (sCompoundPath, mc.getAttr(sCompoundPath)))
-
-                        else:
-                            for sConnection in mc.listAttr(sAttrPath, multi = True, sn = True)[1:]:
-                                sCompoundPath = lstNode[0] + "." + sConnection
-
-                                dOutput[sRenderEngine].append(
-                                    (sCompoundPath, mc.getAttr(sCompoundPath)))
-
-        return dOutput
-
     def getShadingGroup(self, sShader):
         """
         Returns the shading group name for a shader.
@@ -440,6 +365,81 @@ class Utils(object):
                 except:
                     print "Sandwich: Warning! Could not import reference node %s. " \
                         "Skipping." % (sReferenceNode)
+
+    def renderGlobals(self, lstEngines):
+        """
+        Returns a dictionary with an entry for each render engine which 
+        contains the current render globals for each engine.
+        """
+
+        dOutput = {}
+
+        for oEngine in lstEngines:
+            sRenderEngine = oEngine.engineName()
+
+            # Reset the render globals for the specified engine
+            dOutput[sRenderEngine] = []
+
+            # Iterate through all render globals nodes for the render engine
+            for lstNode in oEngine.nodes():
+                # For each render globals node retrieve all attributes as short names and save them along with their
+                # current state
+                for sAttr in mc.listAttr(lstNode[0], shortNames = True):
+                    # Skip all attribute names that contains dots. I don't know why they are included but they gives
+                    # you a lot of trouble
+                    if sAttr.count("."):
+                        continue
+
+                    # Begin by dividing the attributes into single and compound (multi) attributes
+                    if not mc.attributeQuery(sAttr, node = lstNode[0], numberOfChildren = True):
+                        # Attribute is single attribute
+
+                        # Check if it is a normal or message attribute
+                        if not mc.attributeQuery(sAttr, node = lstNode[0], message = True):
+                            # This is a normal attribute, the easy ones
+                            dOutput[sRenderEngine].append((lstNode[1] + "." + sAttr, mc.getAttr(lstNode[0] + "." + sAttr)))
+
+                        else:
+                            pass
+                            # Because this is a message attribute, we will store a list of all outgoing connections from
+                            # this attribute so we can later restore it
+                            #lstConnection = mc.connectionInfo(lstNode[0] + "." + sAttr, destinationFromSource = True)
+                            #if not lstConnection:
+                            #    lstConnection = []
+
+                            #dOutput[sRenderEngine].append((lstNode[1] + "." + sAttr, lstConnection))
+
+                    else:
+                        # Attribute is a compound
+
+                        # Since we can encounter compound attributes we have to make sure we exclude their variants
+                        # with one dot in their attribute names. I don't know why Maya even displays them..
+                        #if sAttr.count(".") >= 1:
+                        #    continue
+
+                        sAttrPath = lstNode[0] + "." + sAttr
+                        sAttrType = mc.getAttr(lstNode[0] + "." + sAttr, type = True)
+
+                        lstMultiIndices = mc.getAttr(lstNode[0] + "." + sAttr, multiIndices = True)
+                        if lstMultiIndices:
+                            for iIndex in lstMultiIndices:
+                                sCompoundPath = "%s.%s[%s]" % (lstNode[0], sAttr, iIndex)
+                                lstMulti = mc.listAttr(sCompoundPath, multi = True, sn = True)
+
+                                for sAttrInMulti in lstMulti[1:]:
+                                    sCompoundPath = "%s.%s" % (lstNode[0], sAttrInMulti)
+
+                                    dOutput[sRenderEngine].append(
+                                        (sCompoundPath, mc.getAttr(sCompoundPath)))
+
+                        else:
+                            for sConnection in mc.listAttr(sAttrPath, multi = True, sn = True)[1:]:
+                                sCompoundPath = lstNode[0] + "." + sConnection
+
+                                dOutput[sRenderEngine].append(
+                                    (sCompoundPath, mc.getAttr(sCompoundPath)))
+
+        return dOutput
 
     def resetShading(self):
         """

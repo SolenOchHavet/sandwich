@@ -20,12 +20,12 @@ import sys
 import subprocess as sub
 
 import libLayer
-import libIO
+import libOutput
 import libUtils
 import libNode
 import libUI
 reload(libLayer)
-reload(libIO)
+reload(libOutput)
 reload(libUtils)
 reload(libNode)
 reload(libUI)
@@ -47,7 +47,7 @@ class MainCore(object):
 
         self.reloadEngines()
 
-        self.io = libIO.IOCore(self)
+        self.out = libOutput.Output(self)
         self.utils = libUtils.Utils(self)
         self.node = libNode.Node()
         self.ui = libUI.UICore(self)
@@ -64,7 +64,7 @@ class MainCore(object):
         it's settings it will only store what has been edited. Like git.
         """
 
-        self.dDefaultRenderGlobals = self.utils.getRenderGlobals()
+        self.dDefaultRenderGlobals = self.utils.renderGlobals(self.engines())
 
     def addGlobals(self):
         """
@@ -190,7 +190,7 @@ class MainCore(object):
         if not self.dRenderGlobals:
             self.addRenderGlobals()
 
-        dLayerRenderGlobals = self.utils.getRenderGlobals()
+        dLayerRenderGlobals = self.utils.renderGlobals(self.engines())
         dDefaultRenderGlobals = self.dRenderGlobals.copy()
         dOutputRenderGlobals = {}
 
@@ -231,7 +231,7 @@ class MainCore(object):
         it's settings it will only store what has been edited. Like git.
         """
 
-        self.dRenderGlobals = self.utils.getRenderGlobals()
+        self.dRenderGlobals = self.utils.renderGlobals(self.engines())
 
     def engines(self):
         """
@@ -255,13 +255,13 @@ class MainCore(object):
         return sShaderName in self.dLayers[sRenderLayer]["dShaders"].keys()
 
     def export(self, lstRenderLayers, bAsBinary = True, bAsAscii = False):
-        self.io.export(lstRenderLayers, bAsBinary = True, bAsAscii = False)
+        self.out.export(lstRenderLayers, bAsBinary = True, bAsAscii = False)
 
     def getAllExports(self):
-        return self.io.getExports()
+        return self.out.getExports()
 
     def getAllRenders(self):
-        return self.io.getRenders()
+        return self.out.getRenders()
 
     def getAttributeEnum(self, sNode, sAttrName):
         lstResult = mc.attributeQuery(sAttrName, node = sNode, listEnum = True)
@@ -536,7 +536,7 @@ class MainCore(object):
         if not dData:
             # Because no default render globals exists yet, create them and 
             # store them on the node
-            dData = self.utils.getRenderGlobals()
+            dData = self.utils.renderGlobals(self.engines())
             self.node.saveDefaultRenderGlobals(dData)
 
         self.setRenderGlobals(dData)
@@ -572,7 +572,7 @@ class MainCore(object):
         print self.lstEngines
 
     def render(self, lstRenderLayers, bCurrentFrame = False, bEverything = False):
-        self.io.render(lstRenderLayers, bCurrentFrame, bEverything)
+        self.out.render(lstRenderLayers, bCurrentFrame, bEverything)
 
     def revertRenderLayerAttributes(self):
         """
