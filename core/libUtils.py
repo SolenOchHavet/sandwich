@@ -17,9 +17,7 @@ import maya.mel as mel
 
 
 class Utils(object):
-    def __init__(self, parent = None):
-        self.parent = parent
-
+    def __init__(self):
         self.reDirName = re.compile("[\|,_,a-z,0-9,:]+\|", re.IGNORECASE)
 
     def applyAttribute(self, sAttributeName, sValue, lstObjects):
@@ -70,25 +68,21 @@ class Utils(object):
             except:
                 print "Sandwich: Error! Couldn't run PYTHON code!"
 
-    def applyRenderGlobals(self, dRenderGlobalsData):
+    def applyRenderGlobals(self, lstEngines, dDataPerEngine):
         """
         Apply the render globals using a huge dictionary containing all data
         for each render engine.
         """
 
-        for sRenderEngine in dRenderGlobalsData.keys():
-            if sRenderEngine == "mentalray" and \
-                self.parent.bIsMentalRayInstalled == False:
+        for oRenderEngine in lstEngines:
+            # If engine is not installed on the machine, then skip it
+            if not oRenderEngine.isInstalled():
                 continue
 
-            if sRenderEngine == "vray" and \
-                self.parent.bIsVRayInstalled == False:
-                continue
-
-            for lstSetting in dRenderGlobalsData[sRenderEngine]:
+            for lstSetting in dDataPerEngine[oRenderEngine.engineName()]:
                 sAttrPath = lstSetting[0]
 
-                for lstNode in self.parent.dRGNodes[sRenderEngine]:
+                for lstNode in oRenderEngine.nodes():
                     sAttrPath = re.sub("^\\" + lstNode[1], lstNode[0], sAttrPath)
 
                 try:
@@ -334,38 +328,6 @@ class Utils(object):
         else:
             return sValue
 
-    def mergeReferences(self):
-        """
-        Imports all references into the scene. This is a setting that can be
-        activated from Sandwich Globals. Use only if you encounter references
-        disappearing when rendering. Stupid bug or something.
-        """
-
-        lstInvalidRefs = (re.compile("^sharedNode$"), re.compile("_UNKNOWN_REF_NODE_$"))
-
-        for x in range(5):
-            # If only one reference node exists and it's sharedNode, then
-            # we are done
-            lstReferences = mc.ls(type = "reference")
-
-            for sReferenceNode in lstReferences:
-                for reInvalidRef in lstInvalidRefs:
-                    if reInvalidRef.search(sReferenceNode):
-                        lstReferences.remove(sReferenceNode)
-
-            if not lstReferences:
-                break
-
-            for sReferenceNode in lstReferences:
-                try:
-                    sUnresolvedName = mc.referenceQuery(sReferenceNode,
-                        filename = True, un = True)
-                    mc.file(sUnresolvedName, importReference = True)
-
-                except:
-                    print "Sandwich: Warning! Could not import reference node %s. " \
-                        "Skipping." % (sReferenceNode)
-
     def renderGlobals(self, lstEngines):
         """
         Returns a dictionary with an entry for each render engine which 
@@ -374,14 +336,14 @@ class Utils(object):
 
         dOutput = {}
 
-        for oEngine in lstEngines:
-            sRenderEngine = oEngine.engineName()
+        for oRenderEngine in lstEngines:
+            sRenderEngine = oRenderEngine.engineName()
 
             # Reset the render globals for the specified engine
             dOutput[sRenderEngine] = []
 
             # Iterate through all render globals nodes for the render engine
-            for lstNode in oEngine.nodes():
+            for lstNode in oRenderEngine.nodes():
                 # For each render globals node retrieve all attributes as short names and save them along with their
                 # current state
                 for sAttr in mc.listAttr(lstNode[0], shortNames = True):
@@ -465,30 +427,21 @@ class Utils(object):
 
         mc.hide(allObjects = True)
 
-    def setRenderViewEngine(self, sRenderEngine, dEngineNames):
+    def setRenderViewEngine(self, oRenderEngine = None):
         """
         Sets the current render engine in Maya's Render View
         """
 
-        if not sRenderEngine in dEngineNames.keys():
-            print "Sandwich: WARNING! Render engine \"%s\" does not exists. " \
-                "Can't set Render View engine" % \
-                (sRenderEngine)
+        if not oRenderEngine:
+            print "Sandwich: WARNING! No render engine was specified. Can't " \
+                "set Render View engine!"
 
             return
 
-        sCurrentRenderer = "mayaSoftware"
-        if sRenderEngine == "mental ray":
-            if self.parent.bIsMentalRayInstalled:
-                sCurrentRenderer = "mentalRay"
+        mel.eval("setCurrentRenderer %s;" % (oRenderEngine.engineName()))
 
-        elif sRenderEngine == "vray":
-            if self.parent.bIsVRayInstalled:
-                sCurrentRenderer = "vray"
-
-        mel.eval("setCurrentRenderer %s;" % (sCurrentRenderer))
-
-        print "Sandwich: Sets render engine \"%s\" in Render View" % (sRenderEngine)
+        print "Sandwich: Sets render engine \"%s\" in Render View" % \
+            (oRenderEngine.engineName())
 
 
             #def setAttr(self, sAttributeName, sValue, lstObjects):

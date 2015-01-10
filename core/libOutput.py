@@ -3,7 +3,7 @@
 
 """
 
-Library "IO"
+Library "Output"
 
 Handles the export and rendering functions.
 
@@ -33,41 +33,13 @@ class Output(object):
             self.sFileHeader = "#!/bin/sh\n"
             self.sFileExt = ""
 
-    def getExports(self):
-        """
-        Returns a dictionary with export information for all render layers
-        """
-
-        dOutput = {}
-        sExportPath = self.parent.getGlobalsValue("sOutputScenes")
-
-        for sRenderLayer in self.parent.getLayers(bIncludeMasterLayer = False):
-            sFileName = self.sceneName()
-
-            dOutput[sRenderLayer] = {
-                "sFileName": sFileName + "_" + sRenderLayer,
-                "sFilePath": sExportPath,
-                }
-
-        return dOutput
-
-    def getRenders(self):
-        """
-        Returns a dictionary with render information for all render layers
-        """
-
-        dOutput = {}
-
-        for sRenderLayer in self.parent.getLayers(bIncludeMasterLayer = False):
-            dOutput[sRenderLayer] = self.getRender(sRenderLayer)
-
-        return dOutput
-
     def getRender(self, sRenderLayer):
         """
         Returns a dictionary with render information for a specified render layer
 
         sRenderLayer specifies which render layer should be used.
+
+        TODO: This information should be moved to either libLayer or libMain!
         """
 
         sExportPath = self.parent.getGlobalsValue("sOutputScenes")
@@ -188,7 +160,7 @@ class Output(object):
             # saved file, merge the references, resave the file and then open
             # the temp file that we began from
             if bSettingImportRefs:
-                self.parent.utils.mergeReferences()
+                self.mergeReferences()
                 sSavedFile = self.saveFile(sRenderLayerPath, bAsBinary, bAsAscii)
                 
                 mc.file(sSavedTemp, open = True)
@@ -213,6 +185,38 @@ class Output(object):
         print "Sandwich: All exports done! Check log for further details"
 
         return lstOutput
+
+    def mergeReferences(self):
+        """
+        Imports all references into the scene. This is a setting that can be
+        activated from Sandwich Globals. Use only if you encounter references
+        disappearing when rendering. Stupid bug or something.
+        """
+
+        lstInvalidRefs = (re.compile("^sharedNode$"), re.compile("_UNKNOWN_REF_NODE_$"))
+
+        for x in range(5):
+            # If only one reference node exists and it's sharedNode, then
+            # we are done
+            lstReferences = mc.ls(type = "reference")
+
+            for sReferenceNode in lstReferences:
+                for reInvalidRef in lstInvalidRefs:
+                    if reInvalidRef.search(sReferenceNode):
+                        lstReferences.remove(sReferenceNode)
+
+            if not lstReferences:
+                break
+
+            for sReferenceNode in lstReferences:
+                try:
+                    sUnresolvedName = mc.referenceQuery(sReferenceNode,
+                        filename = True, un = True)
+                    mc.file(sUnresolvedName, importReference = True)
+
+                except:
+                    print "Sandwich: Warning! Could not import reference node %s. " \
+                        "Skipping." % (sReferenceNode)
 
     def render(self, lstRenderLayers, bCurrentFrame = False, bEverything = False):
         """
@@ -349,6 +353,8 @@ class Output(object):
     def sceneName(self):
         """
         Returns the scene name except the file extension
+
+        TODO: This method should probably be moved to libMain!!
         """
 
         sFileName = mc.file(query = True, sn = True, shortName = True)

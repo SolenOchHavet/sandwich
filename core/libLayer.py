@@ -147,7 +147,7 @@ class Layer(object):
                 self.dLayers[sRenderLayer]["sRevertCode"])
 
         # Reset the render globals into the defaults. The default render globals can only be resaved from Globals
-        self.utils.applyRenderGlobals(self.dRenderGlobals)
+        self.utils.applyRenderGlobals(self.parent.engines(), self.dRenderGlobals)
 
         # If this is masterLayer then abort now (we know that if
         # self.sCurrentLayer is empty)
@@ -167,7 +167,7 @@ class Layer(object):
                 self.attributeOverrideValue(sAttributeName),
                 self.attributeAssignment(sAttributeName).split())
 
-        self.utils.applyRenderGlobals(self.renderGlobals())
+        self.utils.applyRenderGlobals(self.parent.engines(), self.renderGlobals())
 
         self.utils.applyCode(self.overrideMode(), self.overrideCode())
 

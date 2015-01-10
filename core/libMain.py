@@ -48,7 +48,7 @@ class MainCore(object):
         self.reloadEngines()
 
         self.out = libOutput.Output(self)
-        self.utils = libUtils.Utils(self)
+        self.utils = libUtils.Utils()
         self.node = libNode.Node()
         self.ui = libUI.UICore(self)
         self.__layer = libLayer.Layer(self)
@@ -258,10 +258,34 @@ class MainCore(object):
         self.out.export(lstRenderLayers, bAsBinary = True, bAsAscii = False)
 
     def getAllExports(self):
-        return self.out.getExports()
+        """
+        Returns a dictionary with export information for all render layers
+        """
+
+        dOutput = {}
+        sExportPath = self.getGlobalsValue("sOutputScenes")
+
+        for sRenderLayer in self.getLayers(bIncludeMasterLayer = False):
+            sFileName = self.out.sceneName()
+
+            dOutput[sRenderLayer] = {
+                "sFileName": sFileName + "_" + sRenderLayer,
+                "sFilePath": sExportPath,
+                }
+
+        return dOutput
 
     def getAllRenders(self):
-        return self.out.getRenders()
+        """
+        Returns a dictionary with render information for all render layers
+        """
+
+        dOutput = {}
+
+        for sRenderLayer in self.getLayers(bIncludeMasterLayer = False):
+            dOutput[sRenderLayer] = self.out.getRender(sRenderLayer)
+
+        return dOutput
 
     def getAttributeEnum(self, sNode, sAttrName):
         lstResult = mc.attributeQuery(sAttrName, node = sNode, listEnum = True)
@@ -618,7 +642,12 @@ class MainCore(object):
         Sets the current render engine in Maya's Render View
         """
 
-        self.utils.setRenderViewEngine(sRenderEngine, self.dEngineNames)
+        # TODO: TEMP SOLUTION!!
+        for oEngine in self.lstEngines:
+            if oEngine.engineName() == sRenderEngine:
+                break
+
+        self.utils.setRenderViewEngine(oEngine)
 
     def transferShader(self, sShaderName, sRenderLayer):
         """
