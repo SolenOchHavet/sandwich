@@ -96,6 +96,18 @@ class Layer(object):
         else:
             return self.dLayers[self.layerName()]["dAttributes"]
 
+    def cameraName(self):
+        """
+        Returns the camera name that will be used for the layer
+        """
+
+        # Retrieve camera on the layer if it has been defined
+        if self.dLayers[self.layerName()]["dRenderSettings"]["lstCameraName"][0]:
+            return self.dLayers[self.layerName()]["dRenderSettings"]["lstCameraName"][1]
+
+        else:
+            return self.parent.dGlobals["sDefaultCamera"]
+
     def code(self):
         """
 
@@ -115,6 +127,20 @@ class Layer(object):
 
     def current(self):
         return self.sCurrentLayer
+
+    def endFrame(self):
+        """
+        Returns the end frame specified for the layer. It's either specified
+        at layer level or at global level
+        """
+
+        lstData = self.dLayers[self.layerName()]["dRenderSettings"]["lstRange"]
+
+        if lstData[0]:
+            if lstData[2]:
+                return lstData[2]
+
+        return self.parent.dGlobals["iEnd"])
 
     def execute(self):
         """
@@ -172,8 +198,29 @@ class Layer(object):
         self.utils.applyCode(self.overrideMode(), self.overrideCode())
 
         # Set the current render engine as the default in the Render View
-        sRenderEngine = self.parent.getLayerRenderEngine()
-        self.parent.setRenderViewEngine(sRenderEngine)
+        self.parent.setRenderViewEngine(self.renderEngine().engineName())
+
+    def fileName(self):
+        """
+        Returns the file name for the render layer. It uses the scene name as
+        the base and then adds the layer name seperated by an underscore
+        """
+
+        return self.utils.sceneName() + "_" + self.layerName()
+
+    def incFrame(self):
+        """
+        Returns the incremental frame specified for the layer. It's either 
+        specified at layer level or at global level
+        """
+
+        lstData = self.dLayers[self.layerName()]["dRenderSettings"]["lstRange"]
+
+        if lstData[0]:
+            if lstData[3]:
+                return lstData[3]
+
+        return self.parent.dGlobals["iStep"])
 
     def layerName(self):
         return self.sOverrideLayer or self.sCurrentLayer
@@ -260,6 +307,21 @@ class Layer(object):
 
         self.dLayers[self.layerName()]["dShaders"][sNewShaderName] = self.dLayers[self.layerName()]["dShaders"].pop(sOldShaderName)
 
+    def renderEngine(self):
+        """
+        Returns the specified render engine for the layer.
+
+        TODO: MUST RETURN THE ENGINE OBJECT!
+        """
+
+        lstData = self.dLayers[self.layerName()]["dRenderSettings"]["lstRenderEngine"]
+
+        if lstData[0]:
+            return lstData[1]
+
+        else:
+            return self.parent.dGlobals["sDefaultEngine"]
+
     def renderGlobals(self, sRenderLayer = None):
         return self.dLayers[self.layerName()]["dRenderGlobals"]
 
@@ -268,6 +330,34 @@ class Layer(object):
 
     def renderSettings(self, sRenderLayer = None):
         return self.dLayers[self.layerName()]["dRenderSettings"].copy()
+
+    def resolutionHeight(self):
+        """
+        Returns the resolution height. It's either specified at layer level or
+        at global level
+        """
+
+        lstData = self.dLayers[self.layerName()]["dRenderSettings"]
+
+        if lstData[0]:
+            if lstData[2]:
+                return lstData[2]
+
+        return self.parent.dGlobals["iHeight"]
+
+    def resolutionWidth(self):
+        """
+        Returns the resolution width. It's either specified at layer level or
+        at global level
+        """
+
+        lstData = self.dLayers[self.layerName()]["dRenderSettings"]
+
+        if lstData[0]:
+            if lstData[1]:
+                return lstData[1]
+
+        return self.parent.dGlobals["iWidth"]
 
     def revertCode(self):
         """
@@ -398,6 +488,20 @@ class Layer(object):
         """
 
         return sorted(self.dLayers[self.layerName()]["dShaders"].keys())
+
+    def startFrame(self):
+        """
+        Returns the start frame specified for the layer. It's either specified
+        at layer level or at global level
+        """
+
+        lstData = self.dLayers[self.layerName()]["dRenderSettings"]["lstRange"]
+
+        if lstData[0]:
+            if lstData[1]:
+                return lstData[1]
+
+        return self.parent.dGlobals["iStart"])
         
     def visibility(self):
         """

@@ -427,6 +427,23 @@ class Utils(object):
 
         mc.hide(allObjects = True)
 
+    def sceneName(self):
+        """
+        Returns the scene name except the file extension
+
+        TODO: This method should probably be moved to libMain!!
+        """
+
+        sFileName = mc.file(query = True, sn = True, shortName = True)
+
+        if sFileName:
+            sFileName = sFileName.rsplit(".", 1)[0]
+
+        else:
+            sFileName = "untitled"
+
+        return sFileName
+
     def setRenderViewEngine(self, oRenderEngine = None):
         """
         Sets the current render engine in Maya's Render View

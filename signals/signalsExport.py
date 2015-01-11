@@ -10,7 +10,7 @@ Signals for "Export"
 
 class Signals(object):
     def __init__(self):
-        self.layersList.itemDoubleClicked.connect(self.evtDoubleClickInList)
+        self.layersTree.itemDoubleClicked.connect(self.evtDoubleClickInList)
         self.exportMaButton.released.connect(self.evtExportAsMa)
         self.exportMbButton.released.connect(self.evtExportAsMb)
         self.cancelButton.released.connect(self.evtCancel)

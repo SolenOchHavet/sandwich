@@ -25,9 +25,9 @@ class Signals(object):
         self.toolbar.globalsButton.released.connect(self.sgnLaunchGlobals)
 
         # The Render Layer List
-        self.list.dataTree.itemSelectionChanged.connect(self.sgnSelectLayer)
-        self.list.dataTree.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.list.dataTree.customContextMenuRequested.connect(self.sgnContextMenuForRenderLayersList)
+        self.dataTree.itemSelectionChanged.connect(self.sgnSelectLayer)
+        self.dataTree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.dataTree.customContextMenuRequested.connect(self.sgnContextMenuForRenderLayersList)
 
     def sgnAddNewLayer(self):
         """

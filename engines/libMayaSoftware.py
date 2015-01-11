@@ -112,6 +112,18 @@ class Engine(object):
 
         return self.lstNodes
 
+    def renderCommand(self):
+        """
+        Returns the command necessary to execute a valid render using the 
+        render engine. It needs to include the following options in this order:
+
+        Maya path, start frame, end frame, width, height, camera, dir path,
+        image name, path to Maya file
+        """
+
+        return "%s -r sw -s %s -e %s -pad 4 -fnc 3 -x %s -y %s -cam %s " \
+            "-rd %s -im %s %s"
+
     def sections(self):
         """
         Returns all the sections of the render globals for the engine

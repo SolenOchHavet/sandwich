@@ -44,24 +44,21 @@ class UI(object):
         self.pathLabel.setText(sLabel)
 
     def uiLoadRenderList(self):
-        dData = self.core.getAllRenders()
-
-        lstRenderLayers = dData.keys()
-        lstRenderLayers.sort()
-
         self.layersList.clear()
 
-        for sRenderLayer in lstRenderLayers:
-            lstRow = ["", sRenderLayer, dData[sRenderLayer]["sCameraName"]]
-            lstRow.append("%sx%s" % (dData[sRenderLayer]["lstResolution"][0],
-                                     dData[sRenderLayer]["lstResolution"][1]))
-            lstRow.append("%s-%s@%s" % (dData[sRenderLayer]["lstRange"][0],
-                                        dData[sRenderLayer]["lstRange"][1],
-                                        dData[sRenderLayer]["lstRange"][2]))
+        for oLayer in self.core.layers():
+            item = QTreeWidgetItem()
 
-            treeItem = QTreeWidgetItem(lstRow)
-            treeItem.setCheckState(0, Qt.Checked)
-            self.layersList.addTopLevelItem(treeItem)
+            item.setText(1, oLayer.layerName())
+            item.setText(2, oLayer.cameraName())
+            item.setText(3, "%sx%s" % 
+                (oLayer.resolutionWidth(), oLayer.resolutionHeight())
+            item.setText(4, "%s-%s@%s" % (oLayer.startFrame(), 
+                oLayer.endFrame(), oLayer.incFrame()))
+
+            item.setCheckState(0, Qt.Checked)
+            
+            self.layersList.addTopLevelItem(item)
 
     def uiSaveSelectedRenders(self):
         self.lstSelectedRenders = []

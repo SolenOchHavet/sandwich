@@ -50,16 +50,18 @@ class UI(object):
         return self._getResult(lstResult)
 
     def uiIsRenderLayerSelected(self):
-        return self.list.renderlayersList.currentRow() != -1
+        if self.dataTree.selectedItems():
+            return True
+
+        return False
 
     def uiLoadRenderLayers(self, sDefaultRenderLayer = None):
         self.list.renderlayersList.blockSignals(True)
 
         self.list.renderlayersList.clear()
-        lstRenderLayers = self.core.getLayers()
 
-        for sRenderLayer in lstRenderLayers:
-            self.list.renderlayersList.addItem(sRenderLayer)
+        for oLayer in self.core.layers():
+            self.list.renderlayersList.addItem(oLayer.layerName())
 
         # Set default
         if sDefaultRenderLayer:
@@ -236,14 +238,14 @@ class UI(object):
 
         actionGroup = QActionGroup(self.parent.layerMenu)
 
-        for sRenderLayer in self.core.getLayers():
-            action = self.parent.layerMenu.addAction(sRenderLayer)
+        for oLayer in self.core.layers():
+            action = self.parent.layerMenu.addAction(oLayer.layerName())
             action.setCheckable(True)
-            action.triggered.connect(partial(self.sgnSelectLayer, sRenderLayer))
+            action.triggered.connect(partial(self.sgnSelectLayer, oLayer.layerName()))
 
             actionGroup.addAction(action)
 
-            if sRenderLayer == sSelectedLayerName:
+            if oLayer.layerName() == sSelectedLayerName:
                 action.setChecked(True)
 
     def uiUpdateWindowTitle(self):

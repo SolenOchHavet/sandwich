@@ -34,17 +34,17 @@ class UI(object):
         self.close()
 
     def uiLoadExportList(self):
-        dData = self.core.getAllExports()
+        self.layersTree.clear()
 
-        lstRenderLayers = dData.keys()
-        lstRenderLayers.sort()
+        for oLayer in self.core.layers():
+            item = QTreeWidgetItem()
 
-        self.layersList.clear()
+            item.setText(1, oLayer.layerName())
+            item.setText(2, oLayer.fileName() + ".mb")
 
-        for sRenderLayer in lstRenderLayers:
-            treeItem = QTreeWidgetItem(["", sRenderLayer, dData[sRenderLayer]["sFileName"] + ".mb"])
-            treeItem.setCheckState(0, Qt.Checked)
-            self.layersList.addTopLevelItem(treeItem)
+            item.setCheckState(0, Qt.Checked)
+
+            self.layersTree.addTopLevelItem(item)
 
     def uiLoadOutputLocation(self):
         sOutputLocation = self.core.getGlobalsValue("sOutputScenes")
@@ -61,8 +61,8 @@ class UI(object):
     def uiSaveSelectedExports(self):
         self.lstSelectedExports = []
 
-        for iIndex in range(self.layersList.topLevelItemCount()):
-            treeItem = self.layersList.topLevelItem(iIndex)
+        for iIndex in range(self.layersTree.topLevelItemCount()):
+            treeItem = self.layersTree.topLevelItem(iIndex)
             if treeItem.checkState(0) == Qt.Checked:
                 self.lstSelectedExports.append(unicode(treeItem.text(1)))
 
@@ -90,7 +90,7 @@ class UI(object):
         QMessageBox.information(self, sTitle, sMsg)
 
     def uiSwitchSelectedCheckStateInList(self):
-        lstSelected = self.layersList.selectedItems()
+        lstSelected = self.layersTree.selectedItems()
 
         if lstSelected[0].checkState(0) == Qt.Checked:
             lstSelected[0].setCheckState(0, Qt.Unchecked)

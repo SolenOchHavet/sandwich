@@ -39,15 +39,18 @@ class UI(object):
 
     def uiGetDestinationLayer(self):
         # Retrieve all render layers and remove the current render layer
-        lstLayers = self.core.getLayers(bIncludeMasterLayer = False)
-        lstLayers.remove(self.core.layer().current())
+        lstOutput = []
 
-        if not lstLayers:
+        for oLayer in self.core.layers():
+            if not oLayer.layerName() == self.core.currentLayer():
+                lstOutput.append(oLayer.layerName())
+        
+        if not lstOutput:
             return
 
         lstResult = QInputDialog.getItem(self, "Transfer Shader to Render Layer",
             "Select which render layer you wish to transfer shader <b>%s</b> to:" %
-            (self.sSelectedShader), lstLayers, editable = False)
+            (self.sSelectedShader), lstOutput, editable = False)
 
         return self._getResult(lstResult)
 

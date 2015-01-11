@@ -38,7 +38,7 @@ class ExportDialog(QDialog, signalsExport.Signals, uiExport.UI):
 
         # Widgets
         self.layersLabel = QLabel("Select Render Layers to Export")
-        self.layersList = QTreeWidget()
+        self.layersTree = QTreeWidget()
         self.tipLabel = QLabel("TIP: Double click a line to change it's check status.")
         self.pathLabel = QLabel("Output Location: <font color='#bbc26e'><please set \"Output Scene\" in Globals to a directory></font>")
 
@@ -48,14 +48,14 @@ class ExportDialog(QDialog, signalsExport.Signals, uiExport.UI):
 
         # Widget Settings
         self.setMinimumWidth(700)
-        self.layersList.setColumnCount(3)
-        self.layersList.setHeaderLabels(["Export", "Render Layer", "File Name"])
-        self.layersList.setColumnWidth(0, 50)
-        self.layersList.setColumnWidth(1, 250)
+        self.layersTree.setColumnCount(3)
+        self.layersTree.setHeaderLabels(["Export", "Render Layer", "File Name"])
+        self.layersTree.setColumnWidth(0, 50)
+        self.layersTree.setColumnWidth(1, 250)
 
         # Widget Status Tips
         self.layersLabel.setStatusTip("Select which render layers should be exported.")
-        self.layersList.setStatusTip("Select which render layers should be exported.")
+        self.layersTree.setStatusTip("Select which render layers should be exported.")
         self.pathLabel.setStatusTip("Your exported files will be written out here. You can change the location in Globals.")
         self.exportMaButton.setStatusTip("Export selected render layers as Maya Ascii files.")
         self.exportMbButton.setStatusTip("Export selected render layers as Maya Binary files.")
@@ -68,7 +68,7 @@ class ExportDialog(QDialog, signalsExport.Signals, uiExport.UI):
         self.buttonsLayout.addWidget(self.cancelButton)
 
         self.mainLayout.addWidget(self.layersLabel)
-        self.mainLayout.addWidget(self.layersList)
+        self.mainLayout.addWidget(self.layersTree)
         self.mainLayout.addWidget(self.tipLabel)
         self.mainLayout.addSpacing(5)
         self.mainLayout.addWidget(self.pathLabel)

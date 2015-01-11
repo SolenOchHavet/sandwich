@@ -23,7 +23,6 @@ reload(signalsMain)
 reload(uiMain)
 
 import frameToolbar
-import frameRenderLayers
 import frameOverview
 import frameVisibility
 import frameShaders
@@ -32,7 +31,6 @@ import frameOverrideGlobals
 import frameRenderGlobals
 import frameCode
 reload(frameToolbar)
-reload(frameRenderLayers)
 reload(frameOverview)
 reload(frameVisibility)
 reload(frameShaders)
@@ -76,10 +74,14 @@ class MainFrame(QFrame, signalsMain.Signals, uiMain.UI):
         self.toolbar = frameToolbar.ToolbarFrame(self)
 
         # - Render Layers, created separately
-        self.list = frameRenderLayers.RenderLayersFrame(self)
+        self.dataTree = QTreeWidget()
 
         # - The tab widget on the right side
         self.settingsTab = QTabWidget()
+
+        # Widget Settings
+        self.dataTree.setHeaderLabels(["Render Layers"])
+        self.dataTree.setRootIsDecorated(False)
 
         # TabWidget setup
         self.settingsTab.addTab(self.overviewFrame, "Overview")
@@ -91,7 +93,7 @@ class MainFrame(QFrame, signalsMain.Signals, uiMain.UI):
         self.settingsTab.addTab(self.codeFrame, "Code")
 
         # Layout the Widgets
-        self.bodyLayout.addWidget(self.list, 0, 0, 1, 1)
+        self.bodyLayout.addWidget(self.dataTree, 0, 0, 1, 1)
         self.bodyLayout.addWidget(self.settingsTab, 0, 1, 1, 1)
 
         self.mainLayout.addWidget(self.toolbar)

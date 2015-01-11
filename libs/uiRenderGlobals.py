@@ -41,7 +41,7 @@ class UI(object):
         self.iCurrentRow = 0
 
         # Get the render globals data from the core
-        sRenderEngine = self.core.getLayerRenderEngine()
+        sRenderEngine = self.core.layer().renderEngine().engineName()
         dRenderGlobals = self.core.getLayerRenderGlobals()
         print "Loading render globals!!", sRenderEngine
         print "overrides!", dRenderGlobals

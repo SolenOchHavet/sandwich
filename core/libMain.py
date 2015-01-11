@@ -36,7 +36,8 @@ class MainCore(object):
         self.dGlobals = {}
         self.dRenderGlobals = {}
         self.dDefaultRenderGlobals = {}
-        self.dLayers = {}
+        self.dLayers = {} # TODO: REMOVE!
+        self.lstLayers = []
         self.sCurrentLayer = ""
         self.sMasterLayer = "masterLayer"
         self.bIsFirstRun = False
@@ -257,36 +258,6 @@ class MainCore(object):
     def export(self, lstRenderLayers, bAsBinary = True, bAsAscii = False):
         self.out.export(lstRenderLayers, bAsBinary = True, bAsAscii = False)
 
-    def getAllExports(self):
-        """
-        Returns a dictionary with export information for all render layers
-        """
-
-        dOutput = {}
-        sExportPath = self.getGlobalsValue("sOutputScenes")
-
-        for sRenderLayer in self.getLayers(bIncludeMasterLayer = False):
-            sFileName = self.out.sceneName()
-
-            dOutput[sRenderLayer] = {
-                "sFileName": sFileName + "_" + sRenderLayer,
-                "sFilePath": sExportPath,
-                }
-
-        return dOutput
-
-    def getAllRenders(self):
-        """
-        Returns a dictionary with render information for all render layers
-        """
-
-        dOutput = {}
-
-        for sRenderLayer in self.getLayers(bIncludeMasterLayer = False):
-            dOutput[sRenderLayer] = self.out.getRender(sRenderLayer)
-
-        return dOutput
-
     def getAttributeEnum(self, sNode, sAttrName):
         lstResult = mc.attributeQuery(sAttrName, node = sNode, listEnum = True)
         lstOutput = []
@@ -324,27 +295,6 @@ class MainCore(object):
 
     def getGlobalsValue(self, sValueName):
         return self.dGlobals[sValueName]
-
-    def getLayerRenderEngine(self):
-        """
-        Returns the render engine for the current layer. If none is specified,
-        the global render engine will be returned.
-        """
-
-        lstLayerEngine = self.layer().renderSetting("lstRenderEngine")
-
-        if lstLayerEngine[0] and lstLayerEngine[1]:
-            return lstLayerEngine[1]
-
-        return self.dGlobals["sDefaultEngine"]
-
-    def getLayers(self, bIncludeMasterLayer = True):
-        lstLayers = self.dLayers.keys()
-        lstLayers.sort()
-        if bIncludeMasterLayer:
-            lstLayers.append(self.sMasterLayer)
-
-        return lstLayers
 
     def getOnlyNew(self, lstExistingObjects, lstNewObjects, bAsList = False):
         """
@@ -490,6 +440,7 @@ class MainCore(object):
         return sorted(lstOutput)
 
     def getSupportedEngines(self):
+        # TODO: REMOVE? I THINK THIS DOES THE SAME AS engines() ?
         return ["mental ray", "maya software", "vray"]
 
     def help(self):
@@ -503,9 +454,16 @@ class MainCore(object):
         specified, the currently selected layer will be used.
         """
 
-        self.__layer.set(sLayerName)
+        for oLayer in self.lstLayers:
+            if oLayer.layerName() == sLayerName or self.sCurrentLayer:
+                return oLayer
 
-        return self.__layer
+    def layers(self):
+        """
+        Returns a list of all layers currently available in the scene
+        """
+
+        return self.lstLayers
 
     def newLayer(self, sLayerName):
         """
@@ -518,13 +476,13 @@ class MainCore(object):
                    "change it and try again." % (self.sMasterLayer)
 
         # Check if the name already exists
-        for sLayerName in self.__layer.dLayers.keys():
-            if re.search(sLayerName, sLayerName, re.IGNORECASE):
+        for oLayer in self.layers():
+            if re.search(sLayerName, oLayer.layerName(), re.IGNORECASE):
                 return "There is already a render layer with the name \"%s\"! " \
                        "Please change it and try again." % (sLayerName)
 
         # Add the render layer
-        self.__layer.dLayers[sLayerName] = {
+        dNewLayer = {
             "sComments": "",
             "sVisibility": "",
             "dShaders": {},
@@ -544,15 +502,23 @@ class MainCore(object):
 
         # Add all supported render engines
         for sRenderEngine in self.lstSupportedEngines:
-            self.__layer.dLayers[sLayerName]["dRenderGlobals"][sRenderEngine] = []
+            dNewLayer["dRenderGlobals"][sRenderEngine] = []
+
+        oLayer = libLayer.Layer(self, sLayerName, dNewLayer)
+        self.lstLayers.append(oLayer) 
 
         # Set the new layer to the current working layer
         self.sCurrentLayer = sLayerName
 
     def reload(self):
         # Load all layers available from the node
-        self.__layer.dLayers.update(self.node.layers())
+        dLayers = self.node.layers()
 
+        for sLayerName in dLayers.keys():
+            oLayer = libLayer.Layer(self, sLayerName, dLayers[sLayerName])
+
+            self.lstLayers.append(oLayer)
+        
         # Load the render globals. If no render globals exists yet, then create
         # new that will directly be stored in the Sandwich node
         dData = self.node.renderGlobals()
