@@ -23,12 +23,10 @@ import libLayer
 import libOutput
 import libUtils
 import libNode
-import libUI
 reload(libLayer)
 reload(libOutput)
 reload(libUtils)
 reload(libNode)
-reload(libUI)
 
 
 class MainCore(object):
@@ -39,6 +37,7 @@ class MainCore(object):
         self.dLayers = {} # TODO: REMOVE!
         self.lstLayers = []
         self.sCurrentLayer = ""
+        self.oCurrentLayer = None
         self.sMasterLayer = "masterLayer"
         self.bIsFirstRun = False
         self.lstSelection = []
@@ -51,13 +50,13 @@ class MainCore(object):
         self.out = libOutput.Output(self)
         self.utils = libUtils.Utils()
         self.node = libNode.Node()
-        self.ui = libUI.UICore(self)
-        self.__layer = libLayer.Layer(self)
 
         self.reIsLight = re.compile("Light$")
 
+        self.reload()
+
         # Post actions that have to take place after the initialization of above classes
-        self.layer(self.node.selected()).select()
+        self.selectLayer(self.node.selected())
 
     def addDefaultRenderGlobals(self):
         """
@@ -86,7 +85,7 @@ class MainCore(object):
             "iStep": "1",
             "bSettingImportRefs": False,
             "sTerminalApp": "",
-            "sDefaultEngine": "mental ray"
+            "sDefaultEngine": "mentalRay"
         }
 
         # If Sandwich's environment variables exists, they will override the
@@ -233,6 +232,11 @@ class MainCore(object):
         """
 
         self.dRenderGlobals = self.utils.renderGlobals(self.engines())
+
+    def engine(self, sEngine):
+        for oEngine in self.lstEngines:
+            if oEngine.engineName() == sEngine:
+                return oEngine
 
     def engines(self):
         """
@@ -454,9 +458,12 @@ class MainCore(object):
         specified, the currently selected layer will be used.
         """
 
-        for oLayer in self.lstLayers:
-            if oLayer.layerName() == sLayerName or self.sCurrentLayer:
-                return oLayer
+        if sLayerName != None:
+            for oLayer in self.lstLayers:
+                if oLayer.layerName() == sLayerName or self.sCurrentLayer:
+                    return oLayer
+
+        return self.oCurrentLayer
 
     def layers(self):
         """
@@ -501,14 +508,15 @@ class MainCore(object):
         }
 
         # Add all supported render engines
-        for sRenderEngine in self.lstSupportedEngines:
-            dNewLayer["dRenderGlobals"][sRenderEngine] = []
+        for oRenderEngine in self.lstEngines:
+            dNewLayer["dRenderGlobals"][oRenderEngine.engineName()] = []
 
         oLayer = libLayer.Layer(self, sLayerName, dNewLayer)
         self.lstLayers.append(oLayer) 
 
         # Set the new layer to the current working layer
         self.sCurrentLayer = sLayerName
+        self.oCurrentLayer = oLayer
 
     def reload(self):
         # Load all layers available from the node
@@ -516,6 +524,12 @@ class MainCore(object):
 
         for sLayerName in dLayers.keys():
             oLayer = libLayer.Layer(self, sLayerName, dLayers[sLayerName])
+
+            self.lstLayers.append(oLayer)
+
+        # Make sure a masterLayer exists, otherwise create it
+        if not "masterLayer" in dLayers.keys():
+            oLayer = libLayer.Layer(self, "masterLayer")
 
             self.lstLayers.append(oLayer)
         
@@ -529,13 +543,13 @@ class MainCore(object):
             dData = self.utils.renderGlobals(self.engines())
             self.node.saveDefaultRenderGlobals(dData)
 
-        self.setRenderGlobals(dData)
+        self.dRenderGlobals = dData
         self.setDefaultRenderGlobals(dData)
 
         # Load the Sandwich globals
         dData = self.node.globals()
 
-        if sData:
+        if dData:
             self.setGlobals(dData)
 
         else:
@@ -544,8 +558,14 @@ class MainCore(object):
 
     def reloadEngines(self):
         self.lstEngines = []
-        sDirPath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        print "sDirPath", sDirPath
+
+        # Append the sandwich/engines folder to the local python path if it
+        # does not yet exists. This is needed in order to import the engines
+        sDirPath = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/engines"
+
+        if not sDirPath in sys.path:
+            sys.path.append(sDirPath)
+
         for sFileName in os.listdir(sDirPath):
             if re.search("^_", sFileName):
                 continue
@@ -555,9 +575,9 @@ class MainCore(object):
 
             sFileName = sFileName.rsplit(".", 1)[0]
 
-            module = __import__("engines." + sFileName)
-            print module, dir(module)
-            self.lstEngines.append(__import__("engines." + sFileName).Engine(self.iMayaVersion))
+            module = __import__(sFileName)
+
+            self.lstEngines.append(__import__(sFileName).Engine(self.iMayaVersion))
 
         print self.lstEngines
 
@@ -587,6 +607,13 @@ class MainCore(object):
     def saveSelection(self):
         self.lstSelection = mc.ls(sl = True)
 
+    def selectLayer(self, sLayerName = None):
+        self.oCurrentLayer = None
+
+        for oLayer in self.lstLayers:
+            if oLayer.layerName() == sLayerName:
+                self.oCurrentLayer = oLayer
+
     def setDefaultRenderGlobals(self, dData):
         self.dDefaultRenderGlobals = dData
 
@@ -595,13 +622,6 @@ class MainCore(object):
 
     def setGlobalsValue(self, sValueName, xValue):
         self.dGlobals[sValueName] = xValue
-
-    def setLayerRenderSetting(self, sRenderSetting, lstData):
-        """
-        Set what layer render settings should be used for the currently selected layer
-        """
-
-        self.dLayers[self.sCurrentLayer]["dRenderSettings"][sRenderSetting] = lstData
 
     def setRenderViewEngine(self, sRenderEngine):
         """

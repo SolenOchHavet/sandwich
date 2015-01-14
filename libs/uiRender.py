@@ -52,7 +52,7 @@ class UI(object):
             item.setText(1, oLayer.layerName())
             item.setText(2, oLayer.cameraName())
             item.setText(3, "%sx%s" % 
-                (oLayer.resolutionWidth(), oLayer.resolutionHeight())
+                (oLayer.resolutionWidth(), oLayer.resolutionHeight()))
             item.setText(4, "%s-%s@%s" % (oLayer.startFrame(), 
                 oLayer.endFrame(), oLayer.incFrame()))
 

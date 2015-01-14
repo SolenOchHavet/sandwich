@@ -30,7 +30,7 @@ class ToolbarFrame(QFrame):
 
         # Widgets
         self.newlayerButton = QPushButton("New Layer...")
-        self.renamelayerButton = QPushButton("Rename Layer...")
+        self.renameLayerButton = QPushButton("Rename Layer...")
         self.savelayerButton = QPushButton("Save Layer")
 
         self.renderButton = QPushButton("Render...")
@@ -39,7 +39,7 @@ class ToolbarFrame(QFrame):
 
         # Widget Settings
         self.newlayerButton.setFixedSize(100, 32)
-        self.renamelayerButton.setFixedSize(100, 32)
+        self.renameLayerButton.setFixedSize(100, 32)
         self.savelayerButton.setFixedSize(100, 32)
         self.renderButton.setFixedSize(100, 32)
         self.exportButton.setFixedSize(100, 32)
@@ -47,7 +47,7 @@ class ToolbarFrame(QFrame):
 
         # Widget Status Tips
         self.newlayerButton.setStatusTip("Create a new render layer. If created, it will become the active one.")
-        self.renamelayerButton.setStatusTip("Rename the selected render layer. Name must be unique and never \"masterLayer\".")
+        self.renameLayerButton.setStatusTip("Rename the selected render layer. Name must be unique and never \"masterLayer\".")
         self.savelayerButton.setStatusTip("Save and apply the latest changes to the selected render layer.")
         self.renderButton.setStatusTip("Shows the render dialog. Used to render out the render layers.")
         self.exportButton.setStatusTip("Shows the export dialog. Used to export the render layers to new Maya files.")
@@ -55,7 +55,7 @@ class ToolbarFrame(QFrame):
 
         # Layout the Widgets
         self.buttonsLayout.addWidget(self.newlayerButton)
-        self.buttonsLayout.addWidget(self.renamelayerButton)
+        self.buttonsLayout.addWidget(self.renameLayerButton)
         self.buttonsLayout.addWidget(self.savelayerButton)
         self.buttonsLayout.addStretch(1)
         self.buttonsLayout.addWidget(self.renderButton)

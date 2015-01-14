@@ -13,9 +13,11 @@ what he/she is pointing at with the mouse.
 
 try:
     from PyQt4.QtGui import *
+    from PyQt4.QtCore import Qt
 
 except:
     from PySide.QtGui import *
+    from PySide.QtCore import Qt
 
 import sandwich.signals.signalsMain as signalsMain
 import sandwich.libs.uiMain as uiMain
@@ -49,10 +51,8 @@ class MainFrame(QFrame, signalsMain.Signals, uiMain.UI):
         self.text = text
         
         # Layout Widgets
-        self.adjustLayout = QHBoxLayout()
         self.mainLayout = QVBoxLayout()
-        self.bodyLayout = QGridLayout()
-
+        
         # Frames
         self.overviewFrame = frameOverview.OverviewFrame(
             self, core = self.core, text = self.text)
@@ -75,6 +75,7 @@ class MainFrame(QFrame, signalsMain.Signals, uiMain.UI):
 
         # - Render Layers, created separately
         self.dataTree = QTreeWidget()
+        self.mainSplitter = QSplitter(Qt.Horizontal)
 
         # - The tab widget on the right side
         self.settingsTab = QTabWidget()
@@ -82,6 +83,10 @@ class MainFrame(QFrame, signalsMain.Signals, uiMain.UI):
         # Widget Settings
         self.dataTree.setHeaderLabels(["Render Layers"])
         self.dataTree.setRootIsDecorated(False)
+        self.mainSplitter.addWidget(self.dataTree)
+        self.mainSplitter.addWidget(self.settingsTab)
+        self.mainSplitter.setStretchFactor(0, 1)
+        self.mainSplitter.setStretchFactor(1, 2)
 
         # TabWidget setup
         self.settingsTab.addTab(self.overviewFrame, "Overview")
@@ -93,20 +98,13 @@ class MainFrame(QFrame, signalsMain.Signals, uiMain.UI):
         self.settingsTab.addTab(self.codeFrame, "Code")
 
         # Layout the Widgets
-        self.bodyLayout.addWidget(self.dataTree, 0, 0, 1, 1)
-        self.bodyLayout.addWidget(self.settingsTab, 0, 1, 1, 1)
-
+        self.mainLayout.addSpacing(5)
         self.mainLayout.addWidget(self.toolbar)
-        self.mainLayout.addLayout(self.bodyLayout)
-
-        self.adjustLayout.addSpacing(5)
-        self.adjustLayout.addLayout(self.mainLayout)
-        self.adjustLayout.addSpacing(5)
+        self.mainLayout.addWidget(self.mainSplitter)
+        self.mainLayout.addSpacing(5)
 
         # Layout Settings
-        self.bodyLayout.setColumnStretch(1, 2)
-        #self.bodyLayout.setColumnStretch(2, 1)
-        self.setLayout(self.adjustLayout)
+        self.setLayout(self.mainLayout)
 
         uiMain.UI.__init__(self)
         signalsMain.Signals.__init__(self)

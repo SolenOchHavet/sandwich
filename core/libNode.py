@@ -154,7 +154,7 @@ class Node(object):
             # Load the code data
             dData = eval(mc.getAttr(self.sSwNode + "." + sRenderLayer + 
                 "_code"))
-
+            print dData
             dOutput[sRenderLayer]["sOverrideCode"] = dData["sOverrideCode"]
             dOutput[sRenderLayer]["sOverrideMode"] = dData["sOverrideMode"]
             dOutput[sRenderLayer]["sRevertCode"] = dData["sRevertCode"]
@@ -204,7 +204,7 @@ class Node(object):
             type = "string")
 
         # Save the shaders data to the node
-        mc.setAttr(sBasePath + "_shaders", unicode(oLayer.shaders()), 
+        mc.setAttr(sBasePath + "_shaders", unicode(oLayer.shaders(True)), 
             type = "string")
 
         # Save the attributes data to the node

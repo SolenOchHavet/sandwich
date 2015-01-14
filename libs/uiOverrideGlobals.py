@@ -92,10 +92,10 @@ class UI(object):
         lstRange[3] = unicode(self.stepField.text())
         lstRenderEngine[1] = unicode(self.engineCombo.currentText())
 
-        self.core.setLayerRenderSetting("lstCameraName", lstCamera)
-        self.core.setLayerRenderSetting("lstResolution", lstResolution)
-        self.core.setLayerRenderSetting("lstRange", lstRange)
-        self.core.setLayerRenderSetting("lstRenderEngine", lstRenderEngine)
+        self.core.layer().setRenderSetting("lstCameraName", lstCamera)
+        self.core.layer().setRenderSetting("lstResolution", lstResolution)
+        self.core.layer().setRenderSetting("lstRange", lstRange)
+        self.core.layer().setRenderSetting("lstRenderEngine", lstRenderEngine)
 
     def uiSetCheckBox(self, qtCheckBox, bValue):
         if bValue:

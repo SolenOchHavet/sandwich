@@ -18,7 +18,7 @@ class Signals(object):
     def __init__(self):
         # The Toolbar
         self.toolbar.newlayerButton.released.connect(self.sgnAddNewLayer)
-        self.toolbar.renamelayerButton.released.connect(self.sgnRenameLayer)
+        self.toolbar.renameLayerButton.released.connect(self.sgnRenameLayer)
         self.toolbar.savelayerButton.released.connect(self.sgnSaveLayer)
         self.toolbar.renderButton.released.connect(self.sgnLaunchRender)
         self.toolbar.exportButton.released.connect(self.sgnLaunchExport)
@@ -34,13 +34,13 @@ class Signals(object):
         When user clicks the button "New Layer..." to add a new render layer
         """
 
-        sNewRenderLayer = self.uiGetNewRenderLayer()
+        sNewLayer = self.uiGetNewRenderLayer()
 
-        if sNewRenderLayer:
-            self.core.newLayer(sNewRenderLayer)
+        if sNewLayer:
+            self.core.newLayer(sNewLayer)
             self.core.layer().save()
 
-            self.uiLoadRenderLayers(sNewRenderLayer)
+            self.uiLoadRenderLayers()
 
             self.sgnSelectLayer()
 
@@ -129,8 +129,8 @@ class Signals(object):
 
     def sgnSelectLayer(self, sLayerName = None):
         """
-        When user selects a render layer in the Render Layers list. Will trigger
-        the selected render layer to be shown
+        When user selects a render layer in the Render Layers list. Loads all
+        the tabs in Sandwich with all settings related to the layer
         """
         print "MEN JA???"
         if sLayerName:
@@ -138,7 +138,6 @@ class Signals(object):
 
         self.uiSaveSelectedRenderLayer()
 
-        self.core.layer().select(self.sSelectedLayerName)
         self.core.layer().execute()
         self.uiLoadSelectedRenderLayer()
 

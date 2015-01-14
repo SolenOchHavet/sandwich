@@ -19,6 +19,8 @@ class Engine(object):
             ("defaultRenderGlobals", "$RG"))
         self.bIsInstalled = False
 
+        self.setup()
+
     def attributes(self):
         """
 
@@ -144,3 +146,10 @@ class Engine(object):
             11: "Memory and Performance: Multi Processing",
             12: "Paint Effects Rendering Options",
         }
+
+    def setup(self):
+        """
+        Makes sure the engine is loaded and that the render globals nodes 
+        exists. This is executed on each startup of Sandwich but does only 
+        takes time if the engine is loaded for the first time.
+        """

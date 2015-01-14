@@ -23,10 +23,9 @@ from functools import partial
 
 class UI(object):
     def __init__(self):
-        self.sSelectedLayerName = self.core.layer().current()
+        self.sSelectedLayerName = self.core.layer().layerName()
 
-        self.uiLoadRenderLayers(self.sSelectedLayerName)
-        self.uiSaveSelectedRenderLayer()
+        self.uiLoadRenderLayers()
         self.uiUpdateWindowTitle()
         self.uiValidate()
 
@@ -55,26 +54,21 @@ class UI(object):
 
         return False
 
-    def uiLoadRenderLayers(self, sDefaultRenderLayer = None):
-        self.list.renderlayersList.blockSignals(True)
-
-        self.list.renderlayersList.clear()
+    def uiLoadRenderLayers(self):
+        self.dataTree.blockSignals(True)
+        self.dataTree.clear()
 
         for oLayer in self.core.layers():
-            self.list.renderlayersList.addItem(oLayer.layerName())
+            item = QTreeWidgetItem()
 
-        # Set default
-        if sDefaultRenderLayer:
-            self.list.renderlayersList.setCurrentRow(lstRenderLayers.index(sDefaultRenderLayer))
+            item.setText(0, oLayer.layerName())
 
-        else:
-            if self.list.renderlayersList.count() > 0:
-                self.list.renderlayersList.setCurrentRow(self.list.renderlayersList.count() - 1)
+            self.dataTree.addTopLevelItem(item)
 
-            else:
-                self.list.renderlayersList.setCurrentRow(0)
+            if self.core.layer() == oLayer:
+                item.setSelected(True)
 
-        self.list.renderlayersList.blockSignals(False)
+        self.dataTree.blockSignals(False)
 
     def uiLoadSelectedRenderLayer(self):
         if self.sSelectedLayerName == "masterLayer":
@@ -141,16 +135,22 @@ class UI(object):
         self.codeFrame.revertField.setText(self.core.layer().revertCode())
 
     def uiRemoveSelectedRenderLayer(self):
-        iIndex = self.list.renderlayersList.currentRow()
-        self.list.renderlayersList.blockSignals(True)
-        self.list.renderlayersList.takeItem(iIndex)
-        self.list.renderlayersList.setCurrentRow(iIndex)
-        self.list.renderlayersList.blockSignals(False)
+        iIndex = self.dataTree.currentRow()
+        self.dataTree.blockSignals(True)
+        self.dataTree.takeItem(iIndex)
+        self.dataTree.setCurrentRow(iIndex)
+        self.dataTree.blockSignals(False)
 
         self.core.layer(self.sSelectedLayerName).remove()
 
     def uiSaveSelectedRenderLayer(self):
-        self.sSelectedLayerName = unicode(self.list.renderlayersList.currentItem().text())
+        lstSelection = self.dataTree.selectedItems()
+
+        if lstSelection:
+            self.core.selectLayer(lstSelection[0].text(0))
+
+        else:
+            self.core.selectLayer(None)
 
     def uiSaveSelectedRenderLayerContent(self):
         self.overviewFrame.uiSaveTabContent()
@@ -164,9 +164,6 @@ class UI(object):
     def uiSaveTabOverview(self):
         self.core.layer().setComments(unicode(self.overviewFrame.descriptionField.toPlainText()))
 
-    def uiSaveTabRenderGlobals(self):
-        self.core.addLayerRenderGlobals()
-
     def uiSetCheckBox(self, qtCheckBox, bValue):
         if bValue:
             qtCheckBox.setCheckState(Qt.Checked)
@@ -175,15 +172,15 @@ class UI(object):
             qtCheckBox.setCheckState(Qt.Unchecked)
 
     def uiSetRenderLayer(self, sLayerName):
-        self.list.renderlayersList.blockSignals(True)
+        self.dataTree.blockSignals(True)
         
-        lstResult =  self.list.renderlayersList.findItems(sLayerName, 
+        lstResult =  self.dataTree.findItems(sLayerName, 
             Qt.MatchFixedString)
         
         if lstResult:
-            self.list.renderlayersList.setCurrentItem(lstResult[0])
+            self.dataTree.setCurrentItem(lstResult[0])
         
-        self.list.renderlayersList.blockSignals(False)
+        self.dataTree.blockSignals(False)
 
     def uiSetRenderLayersVisible(self, bState):
         self.list.setHidden(not bState)
@@ -208,7 +205,7 @@ class UI(object):
             deleteAction = menu.addAction("Delete Layer...")
 
             # Execute the context menu and retrieve the result
-            result = menu.exec_(self.list.renderlayersList.mapToGlobal(position))
+            result = menu.exec_(self.dataTree.mapToGlobal(position))
 
             # Check the result and and return what we should do
             if result == deleteAction:
@@ -249,16 +246,16 @@ class UI(object):
                 action.setChecked(True)
 
     def uiUpdateWindowTitle(self):
-        self.parent.setWindowTitle("Sandwich: " + self.sSelectedLayerName)
+        self.parent.setWindowTitle("Sandwich: " + self.core.layer().layerName())
 
     def uiValidate(self):
-        if self.sSelectedLayerName == "masterLayer":
+        if self.core.layer().layerName() == "masterLayer":
             bIsMasterLayer = False
 
         else:
             bIsMasterLayer = True
 
-        self.toolbar.renamelayerButton.setEnabled(bIsMasterLayer)
+        self.toolbar.renameLayerButton.setEnabled(bIsMasterLayer)
         self.toolbar.savelayerButton.setEnabled(bIsMasterLayer)
         self.settingsTab.setEnabled(bIsMasterLayer)
 

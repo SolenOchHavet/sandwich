@@ -1,4 +1,6 @@
 TODO:
+* OM en inställning i Globals inte är satt sen en tidigare launch, öppna upp fönstret igen!
+
  * Kunna best�mma sj�lv hur renderkataloger skapas innanf�r sOutputRenders!
  * YouTube introduction! :S
  * VRAY? =)

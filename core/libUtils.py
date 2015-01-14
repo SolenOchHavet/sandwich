@@ -73,10 +73,14 @@ class Utils(object):
         Apply the render globals using a huge dictionary containing all data
         for each render engine.
         """
-
+        
         for oRenderEngine in lstEngines:
             # If engine is not installed on the machine, then skip it
             if not oRenderEngine.isInstalled():
+                continue
+
+            # If no settings exists yet for engine, skip it
+            if not dDataPerEngine.has_key(oRenderEngine.engineName()):
                 continue
 
             for lstSetting in dDataPerEngine[oRenderEngine.engineName()]:
@@ -344,6 +348,10 @@ class Utils(object):
 
             # Iterate through all render globals nodes for the render engine
             for lstNode in oRenderEngine.nodes():
+                # If node does not exists for some reason, then skip it
+                if not mc.objExists(lstNode[0]):
+                    continue
+
                 # For each render globals node retrieve all attributes as short names and save them along with their
                 # current state
                 for sAttr in mc.listAttr(lstNode[0], shortNames = True):
@@ -458,7 +466,7 @@ class Utils(object):
         mel.eval("setCurrentRenderer %s;" % (oRenderEngine.engineName()))
 
         print "Sandwich: Sets render engine \"%s\" in Render View" % \
-            (oRenderEngine.engineName())
+            (oRenderEngine.displayName())
 
 
             #def setAttr(self, sAttributeName, sValue, lstObjects):

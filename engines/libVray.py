@@ -22,6 +22,8 @@ class Engine(object):
             ("vrayEnvironmentPreview", "$VEP"))
         self.bIsInstalled = False
 
+        self.setup()
+
     def attributes(self):
         """
 

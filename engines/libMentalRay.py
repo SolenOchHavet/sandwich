@@ -22,6 +22,8 @@ class Engine(object):
             ("miDefaultOptions", "$DO"), ("miDefaultFramebuffer", "$DF"))
         self.bIsInstalled = False
 
+        self.setup()
+
     def attributes(self):
         """
 

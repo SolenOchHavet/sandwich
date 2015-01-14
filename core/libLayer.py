@@ -14,13 +14,12 @@ import re
 
 
 class Layer(object):
-    def __init__(self, parent):
+    def __init__(self, parent, sLayerName, dLayerData = None):
         self.parent = parent
         self.utils = parent.utils
         self.node = parent.node
-        self.dLayers = {}
-        # TODO: vart ska det här ligga??
-        self.dLayers["masterLayer"] = {
+        self.sLayerName = sLayerName
+        self.dLayerData = dLayerData or {
             "sComments": "",
             "sVisibility": "",
             "dShaders": {},
@@ -37,7 +36,7 @@ class Layer(object):
             },
             "dRenderGlobals": {},
         }
-        self.sOverrideLayer = None
+
         self.dRenderGlobals = {}
 
     def addAttribute(self, sAttributeName, sOverValue = "", 
@@ -50,7 +49,7 @@ class Layer(object):
         specified.
         """
 
-        self.dLayers[self.layerName()]["dAttributes"][sAttributeName] = \
+        self.dLayerData["dAttributes"][sAttributeName] = \
             {"sOverValue": sOverValue, "sRevertValue": sRevertValue, 
             "sObjects": sAssignment}
 
@@ -59,28 +58,28 @@ class Layer(object):
         Add new shader with optional assigned objects to the current layer
         """
     
-        self.dLayers[self.layerName()]["dShaders"][sShaderName] = sAssignment
+        self.dLayerData["dShaders"][sShaderName] = sAssignment
 
     def attributeAssignment(self, sAttributeName):
         """
         Return the objects that are affected by the attribute sAttributeName
         """
 
-        return self.dLayers[self.layerName()]["dAttributes"][sAttributeName]["sObjects"]
+        return self.dLayerData["dAttributes"][sAttributeName]["sObjects"]
 
     def attributeOverrideValue(self, sAttributeName):
         """
         Returns the override value that is set for the attribute sAttributeName
         """
 
-        return self.dLayers[self.layerName()]["dAttributes"][sAttributeName]["sOverValue"]
+        return self.dLayerData["dAttributes"][sAttributeName]["sOverValue"]
 
     def attributeRevertValue(self, sAttributeName):
         """
         Returns the revert value that is set for the attribute sAttributeName
         """
 
-        return self.dLayers[self.layerName()]["dAttributes"][sAttributeName]["sRevertValue"]
+        return self.dLayerData["dAttributes"][sAttributeName]["sRevertValue"]
 
     def attributes(self, bAsDictionary = False):
         """
@@ -88,13 +87,9 @@ class Layer(object):
         """
 
         if not bAsDictionary:
-            lstAttributes = self.dLayers[self.layerName()]["dAttributes"].keys()
-            lstAttributes.sort()
+            return sorted(self.dLayerData["dAttributes"].keys())
 
-            return lstAttributes
-
-        else:
-            return self.dLayers[self.layerName()]["dAttributes"]
+        return self.dLayerData["dAttributes"]
 
     def cameraName(self):
         """
@@ -102,8 +97,8 @@ class Layer(object):
         """
 
         # Retrieve camera on the layer if it has been defined
-        if self.dLayers[self.layerName()]["dRenderSettings"]["lstCameraName"][0]:
-            return self.dLayers[self.layerName()]["dRenderSettings"]["lstCameraName"][1]
+        if self.dLayerData["dRenderSettings"]["lstCameraName"][0]:
+            return self.dLayerData["dRenderSettings"]["lstCameraName"][1]
 
         else:
             return self.parent.dGlobals["sDefaultCamera"]
@@ -113,20 +108,19 @@ class Layer(object):
 
         """
 
-        dLayer = self.dLayers[self.layerName()]
-
-        return {dLayer["sOverrideCode"], dLayer["sOverrideMode"],
-            dLayer["sRevertCode"], dLayer["sRevertMode"]}
+        return {
+            "sOverrideCode": self.dLayerData["sOverrideCode"], 
+            "sOverrideMode": self.dLayerData["sOverrideMode"], 
+            "sRevertCode": self.dLayerData["sRevertCode"],
+            "sRevertMode": self.dLayerData["sRevertMode"],
+            }
 
     def comments(self):
         """
         Returns the comments specified for the current layer
         """
 
-        return self.dLayers[self.layerName()]["sComments"]
-
-    def current(self):
-        return self.sCurrentLayer
+        return self.dLayerData["sComments"]
 
     def endFrame(self):
         """
@@ -134,17 +128,19 @@ class Layer(object):
         at layer level or at global level
         """
 
-        lstData = self.dLayers[self.layerName()]["dRenderSettings"]["lstRange"]
+        lstData = self.dLayerData["dRenderSettings"]["lstRange"]
 
         if lstData[0]:
             if lstData[2]:
                 return lstData[2]
 
-        return self.parent.dGlobals["iEnd"])
+        return self.parent.dGlobals["iEnd"]
 
     def execute(self):
         """
         Applys the current layer to the scene
+
+        TODO: Make it work using the newest standards! Call self.layers()
         """
 
         # Quickly reset the visibility and shading.
@@ -154,30 +150,29 @@ class Layer(object):
 
         # Now loop through all layers except the selected and run the revert
         # section for attributes and MEL code
-        for sRenderLayer in self.dLayers.keys():
-            if sRenderLayer == self.sCurrentLayer:
+        for oLayer in self.parent.layers():
+            if oLayer.layerName() == self.sLayerName:
                 continue
 
             # Reset the visibility to false for all objects in each layer
-            lstObjects = self.parent.getOnlyObjects(self.dLayers[sRenderLayer]["sVisibility"])
+            lstObjects = self.parent.getOnlyObjects(oLayer.visibility())
             self.utils.applyAttribute("visibility", False, lstObjects)
 
             # Apply the revert section of the Attributes tab
-            for sAttributeName in self.dLayers[sRenderLayer]["dAttributes"].keys():
+            for sAttributeName in oLayer.attributes():
                 self.utils.applyAttribute(sAttributeName,
-                    self.dLayers[sRenderLayer]["dAttributes"][sAttributeName]["sRevertValue"],
-                    self.dLayers[sRenderLayer]["dAttributes"][sAttributeName]["sObjects"].split())
+                    oLayer.attributeRevertValue(sAttributeName),
+                    oLayer.attributeAssignment(sAttributeName).split())
 
             # Apply the revert section of the MEL tab
-            self.utils.applyCode(self.dLayers[sRenderLayer]["sRevertMode"], 
-                self.dLayers[sRenderLayer]["sRevertCode"])
+            self.utils.applyCode(oLayer.revertMode(), oLayer.revertCode())
 
         # Reset the render globals into the defaults. The default render globals can only be resaved from Globals
         self.utils.applyRenderGlobals(self.parent.engines(), self.dRenderGlobals)
 
         # If this is masterLayer then abort now (we know that if
-        # self.sCurrentLayer is empty)
-        if not self.sCurrentLayer:
+        # self.sLayerName is empty)
+        if self.sLayerName == "masterLayer":
             return
 
         # Now apply our current layer
@@ -206,7 +201,7 @@ class Layer(object):
         the base and then adds the layer name seperated by an underscore
         """
 
-        return self.utils.sceneName() + "_" + self.layerName()
+        return self.utils.sceneName() + "_" + self.sLayerName
 
     def incFrame(self):
         """
@@ -214,23 +209,23 @@ class Layer(object):
         specified at layer level or at global level
         """
 
-        lstData = self.dLayers[self.layerName()]["dRenderSettings"]["lstRange"]
+        lstData = self.dLayerData["dRenderSettings"]["lstRange"]
 
         if lstData[0]:
             if lstData[3]:
                 return lstData[3]
 
-        return self.parent.dGlobals["iStep"])
+        return self.parent.dGlobals["iStep"]
 
     def layerName(self):
-        return self.sOverrideLayer or self.sCurrentLayer
+        return self.sLayerName
 
     def overrideCode(self):
         """
         Returns the custom override code specified for the current layer
         """
 
-        return self.dLayers[self.layerName()]["sOverrideCode"]
+        return self.dLayerData["sOverrideCode"]
 
     def overrideMode(self):
         """
@@ -238,23 +233,23 @@ class Layer(object):
         be "mel" or "python".
         """
 
-        return self.dLayers[self.layerName()]["sOverrideMode"]
+        return self.dLayerData["sOverrideMode"]
 
     def remove(self, sRenderLayer):
-        del self.dLayers[self.layerName()]
-        self.node.deleteLayer(self.layerName())
+        self.node.deleteLayer(self.sLayerName)
+        del self
 
     def removeAttribute(self, sAttributeName):
-        if self.dLayers[self.layerName()]["dAttributes"].has_key(sAttributeName):
-            del self.dLayers[self.layerName()]["dAttributes"][sAttributeName]
+        if self.dLayerData["dAttributes"].has_key(sAttributeName):
+            del self.dLayerData["dAttributes"][sAttributeName]
 
     def removeShader(self, sShaderName):
         """
         Remove the specified shader from the current layer if it exists
         """
 
-        if self.dLayers[self.layerName()]["dShaders"].has_key(sShaderName):
-            del self.dLayers[self.layerName()]["dShaders"][sShaderName]
+        if self.dLayerData["dShaders"].has_key(sShaderName):
+            del self.dLayerData["dShaders"][sShaderName]
 
     def rename(self, sOldLayerName, sNewLayerName):
         """
@@ -264,9 +259,9 @@ class Layer(object):
         """
 
         # If we rename the current layer we will have to update the 
-        # sCurrentLayer variable as well.
-        if self.sCurrentLayer == sOldLayerName:
-            self.sCurrentLayer = sNewLayerName
+        # sLayerName variable as well.
+        if self.sLayerName == sOldLayerName:
+            self.sLayerName = sNewLayerName
 
         self.dLayers[sNewLayerName] = self.dLayers.pop(sOldLayerName)
         self.node.renameLayer(sOldLayerName, sNewLayerName)
@@ -283,11 +278,11 @@ class Layer(object):
             return
 
         # If attribute already exists, then raise an error
-        if self.dLayers[self.layerName()]["dAttributes"].has_key(sNewAttributeName):
+        if self.dLayerData["dAttributes"].has_key(sNewAttributeName):
             return "Can't rename attribute into <b>%s</b> since it already " \
                 "exists for the layer!" % (sNewAttributeName)
             
-        self.dLayers[self.layerName()]["dAttributes"][sNewAttributeName] = self.dLayers[self.layerName()]["dAttributes"].pop(sOldAttributeName)
+        self.dLayerData["dAttributes"][sNewAttributeName] = self.dLayerData["dAttributes"].pop(sOldAttributeName)
 
     def renameShader(self, sOldShaderName, sNewShaderName):
         """
@@ -301,11 +296,11 @@ class Layer(object):
             return
 
         # If shader already exists, then raise an error
-        if self.dLayers[self.layerName()]["dShaders"].has_key(sNewShaderName):
+        if self.dLayerData["dShaders"].has_key(sNewShaderName):
             return "Can't rename attribute into <b>%s</b> since it already " \
                 "exists for the layer!" % (sNewShaderName)
 
-        self.dLayers[self.layerName()]["dShaders"][sNewShaderName] = self.dLayers[self.layerName()]["dShaders"].pop(sOldShaderName)
+        self.dLayerData["dShaders"][sNewShaderName] = self.dLayerData["dShaders"].pop(sOldShaderName)
 
     def renderEngine(self):
         """
@@ -313,23 +308,23 @@ class Layer(object):
 
         TODO: MUST RETURN THE ENGINE OBJECT!
         """
-
-        lstData = self.dLayers[self.layerName()]["dRenderSettings"]["lstRenderEngine"]
+        print "engine!?!??!"
+        lstData = self.dLayerData["dRenderSettings"]["lstRenderEngine"]
 
         if lstData[0]:
-            return lstData[1]
+            return self.parent.engine(lstData[1])
 
         else:
-            return self.parent.dGlobals["sDefaultEngine"]
+            return self.parent.engine(self.parent.dGlobals["sDefaultEngine"])
 
-    def renderGlobals(self, sRenderLayer = None):
-        return self.dLayers[self.layerName()]["dRenderGlobals"]
+    def renderGlobals(self):
+        return self.dLayerData["dRenderGlobals"]
 
     def renderSetting(self, sRenderSetting):
-        return self.dLayers[self.layerName()]["dRenderSettings"][sRenderSetting]
+        return self.dLayerData["dRenderSettings"][sRenderSetting]
 
-    def renderSettings(self, sRenderLayer = None):
-        return self.dLayers[self.layerName()]["dRenderSettings"].copy()
+    def renderSettings(self):
+        return self.dLayerData["dRenderSettings"].copy()
 
     def resolutionHeight(self):
         """
@@ -337,7 +332,7 @@ class Layer(object):
         at global level
         """
 
-        lstData = self.dLayers[self.layerName()]["dRenderSettings"]
+        lstData = self.dLayerData["dRenderSettings"]
 
         if lstData[0]:
             if lstData[2]:
@@ -351,7 +346,7 @@ class Layer(object):
         at global level
         """
 
-        lstData = self.dLayers[self.layerName()]["dRenderSettings"]
+        lstData = self.dLayerData["dRenderSettings"]
 
         if lstData[0]:
             if lstData[1]:
@@ -364,7 +359,7 @@ class Layer(object):
         Returns the custom revert code specified for the current layer
         """
 
-        return self.dLayers[self.layerName()]["sRevertCode"]
+        return self.dLayerData["sRevertCode"]
 
     def revertMode(self):
         """
@@ -372,7 +367,7 @@ class Layer(object):
         "mel" or "python".
         """
 
-        return self.dLayers[self.layerName()]["sRevertMode"]
+        return self.dLayerData["sRevertMode"]
 
     def save(self):
         """
@@ -384,95 +379,76 @@ class Layer(object):
         # current layer
         self.node.save(self)
 
-    def select(self, sLayerName = None):
-        self.sCurrentLayer = sLayerName or self.sOverrideLayer
-
-    def set(self, sLayerName = None):
-        """
-        Specify the currently selected layer.
-
-        NOTE: This method does not execute the layer change. Use execute() 
-        after calling this method.
-        """
-
-        self.sOverrideLayer = sLayerName
-
-        # if sLayerName in self.dLayers.keys():
-        #     self.sCurrentLayer = sLayerName
-
-        #     self.node.saveSelected(sLayerName)
-
-        # elif re.search("^" + self.sMasterLayer + "$", sLayerName, re.IGNORECASE):
-        #     self.sCurrentLayer = ""
-
-        #     self.node.saveSelected("masterLayer")
-
-        # else:
-        #     return "Can't select layer \"%s\" since it does not exists!" % (sLayerName)
-
     def setAttributeAssignment(self, sAttributeName, sValue):
         """
         Set assignment for the specified attribute in the current layer
         """
 
-        self.dLayers[self.layerName()]["dAttributes"][sAttributeName]["sObjects"] = str(sValue)
+        self.dLayerData["dAttributes"][sAttributeName]["sObjects"] = str(sValue)
 
     def setAttributeOverrideValue(self, sAttributeName, sValue):
         """
         Set override value for the specified attribute in the current layer
         """
 
-        self.dLayers[self.layerName()]["dAttributes"][sAttributeName]["sOverValue"] = str(sValue)
+        self.dLayerData["dAttributes"][sAttributeName]["sOverValue"] = str(sValue)
 
     def setAttributeRevertValue(self, sAttributeName, sValue):
-        self.dLayers[self.layerName()]["dAttributes"][sAttributeName]["sRevertValue"] = str(sValue)
+        self.dLayerData["dAttributes"][sAttributeName]["sRevertValue"] = str(sValue)
 
     def setComments(self, sText):
         """
         Set the comments for the currently selected layer
         """
 
-        self.dLayers[self.layerName()]["sComments"] = sText
+        self.dLayerData["sComments"] = sText
 
     def setOverrideCode(self, sText):
         """
         Set what override code should be run for the currently selected layer
         """
 
-        self.dLayers[self.layerName()]["sOverrideCode"] = sText
+        self.dLayerData["sOverrideCode"] = sText
+
+    def setRenderSetting(self, sRenderSetting, lstData):
+        """
+        Set what layer render settings should be used for the currently selected layer
+        """
+
+        self.dLayerData["dRenderSettings"][sRenderSetting] = lstData
 
     def setRevertCode(self, sText):
         """
         Set what revert code should be run for the currently selected layer
         """
 
-        self.dLayers[self.layerName()]["sRevertCode"] = sText
+        self.dLayerData["sRevertCode"] = sText
 
     def setShaderAssignment(self, sShaderName, sText):
         """
         Set the assignment for the specified shader in the current layer
         """
 
-        self.dLayers[self.layerName()]["dShaders"][sShaderName] = sText
+        self.dLayerData["dShaders"][sShaderName] = sText
 
     def setVisibility(self, sText):
         """
         Set what should be visible for the currently selected layer
         """
 
-        self.dLayers[self.layerName()]["sVisibility"] = sText
+        self.dLayerData["sVisibility"] = sText
 
     def shaderAssignment(self, sShaderName, bAsList = False):
         """
         Return the objects that are affected by the shader sShaderName
         """
 
-        if sShaderName in self.dLayers[self.layerName()]["dShaders"].keys():
+        if sShaderName in self.dLayerData["dShaders"].keys():
             if not bAsList:
-                return self.dLayers[self.layerName()]["dShaders"][sShaderName]
+                return self.dLayerData["dShaders"][sShaderName]
 
             else:
-                return self.getOnlyObjects(self.dLayers[self.layerName()]["dShaders"][sShaderName])
+                return self.getOnlyObjects(self.dLayerData["dShaders"][sShaderName])
 
         else:
             if not bAsList:
@@ -481,13 +457,16 @@ class Layer(object):
             else:
                 return []
 
-    def shaders(self):
+    def shaders(self, bAsDictionary = False):
         """
         Returns a list of all shaders for the currently selected layer
         alphabetically
         """
 
-        return sorted(self.dLayers[self.layerName()]["dShaders"].keys())
+        if not bAsDictionary:
+            return sorted(self.dLayerData["dShaders"].keys())
+
+        return self.dLayerData["dShaders"]
 
     def startFrame(self):
         """
@@ -495,17 +474,17 @@ class Layer(object):
         at layer level or at global level
         """
 
-        lstData = self.dLayers[self.layerName()]["dRenderSettings"]["lstRange"]
+        lstData = self.dLayerData["dRenderSettings"]["lstRange"]
 
         if lstData[0]:
             if lstData[1]:
                 return lstData[1]
 
-        return self.parent.dGlobals["iStart"])
+        return self.parent.dGlobals["iStart"]
         
     def visibility(self):
         """
         Returns what should be visibile for the currently selected layer
         """
 
-        return self.dLayers[self.layerName()]["sVisibility"]
+        return self.dLayerData["sVisibility"]
