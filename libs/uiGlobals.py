@@ -98,8 +98,14 @@ class UI(object):
         return self.uiGetNewFolder(sTitle, sCurrentFolderPath)
 
     def uiLoadGlobals(self):
+        for oEngine in self.core.engines():
+            self.engineCombo.addItem(oEngine.displayName(), oEngine)
+
         sDefaultEngine = self.core.getGlobalsValue("sDefaultEngine")
-        self.engineCombo.setCurrentIndex(self.core.getSupportedEngines().index(sDefaultEngine))
+        iIndex = self.engineCombo.findText(sDefaultEngine)
+        
+        if iIndex != -1:
+            self.engineCombo.setCurrentIndex(iIndex)
 
         self.rendersField.setText(self.core.getGlobalsValue("sOutputRenders"))
         self.scenesField.setText(self.core.getGlobalsValue("sOutputScenes"))

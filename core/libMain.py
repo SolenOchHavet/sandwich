@@ -32,9 +32,7 @@ reload(libNode)
 class MainCore(object):
     def __init__(self):
         self.dGlobals = {}
-        self.dRenderGlobals = {}
-        self.dDefaultRenderGlobals = {}
-        self.dLayers = {} # TODO: REMOVE!
+        self.dMasterRenderGlobals = {}
         self.lstLayers = []
         self.sCurrentLayer = ""
         self.oCurrentLayer = None
@@ -57,14 +55,6 @@ class MainCore(object):
 
         # Post actions that have to take place after the initialization of above classes
         self.selectLayer(self.node.selected())
-
-    def addDefaultRenderGlobals(self):
-        """
-        Sets the default render globals for all render engines available in Sandwich. When a render layer later saves
-        it's settings it will only store what has been edited. Like git.
-        """
-
-        self.dDefaultRenderGlobals = self.utils.renderGlobals(self.engines())
 
     def addGlobals(self):
         """
@@ -186,52 +176,55 @@ class MainCore(object):
                 self.dGlobals["sTerminalApp"] = "/usr/bin/terminal $BATCHFILE"
 
     def addLayerRenderGlobals(self):
-        # Add default render globals if they do not exists yet
-        if not self.dRenderGlobals:
-            self.addRenderGlobals()
+        print "addLayerRenderGlobals()!!!"
+        # Add default render globals if they do not exists yet for the current engine
+        if not self.dMasterRenderGlobals:
+            self.addMasterRenderGlobals()
 
-        dLayerRenderGlobals = self.utils.renderGlobals(self.engines())
-        dDefaultRenderGlobals = self.dRenderGlobals.copy()
+        dLayerRenderGlobals = self.utils.renderGlobals([self.layer().renderEngine()])
+        dDefaultRenderGlobals = self.dMasterRenderGlobals.copy()
         dOutputRenderGlobals = {}
 
-        # Iterate through all render engines available
-        for sRenderEngine in dLayerRenderGlobals.keys():
-            dOutputRenderGlobals[sRenderEngine] = []
+        print dLayerRenderGlobals
+        print dDefaultRenderGlobals
+        sRenderEngine = self.layer().renderEngine().engineName()
+        dOutputRenderGlobals[sRenderEngine] = []
+        
+        for lstSetting in dLayerRenderGlobals[sRenderEngine]:
+            # Search for this setting in dDefaultRenderGlobals until we find it
+            iIndex = 0
+            bFoundAttr = False
 
-            for lstSetting in dLayerRenderGlobals[sRenderEngine]:
-                # Search for this setting in dDefaultRenderGlobals until we find it
-                iIndex = 0
-                bFoundAttr = False
+            for lstDefault in dDefaultRenderGlobals[sRenderEngine]:
+                # If we find it check if it still has the same value. If not, then add it to our
+                # dOutputRenderGlobals. Also remove the entry from dDefaultRenderGlobals to iterate faster!
+                if lstSetting[0] == lstDefault[0]:
+                    bFoundAttr = True
 
-                for lstDefault in dDefaultRenderGlobals[sRenderEngine]:
-                    # If we find it check if it still has the same value. If not, then add it to our
-                    # dOutputRenderGlobals. Also remove the entry from dDefaultRenderGlobals to iterate faster!
-                    if lstSetting[0] == lstDefault[0]:
-                        bFoundAttr = True
+                    if lstSetting[1] != lstDefault[1]:
+                        dOutputRenderGlobals[sRenderEngine].append(lstSetting)
 
-                        if lstSetting[1] != lstDefault[1]:
-                            dOutputRenderGlobals[sRenderEngine].append(lstSetting)
+                    break
 
-                        break
+                iIndex += 1
 
-                    iIndex += 1
+            # If the attribute was found delete it to decrease the list to iterate through!
+            if bFoundAttr:
+                dDefaultRenderGlobals[sRenderEngine].pop(iIndex)
 
-                # If the attribute was found delete it to decrease the list to iterate through!
-                if bFoundAttr:
-                    dDefaultRenderGlobals[sRenderEngine].pop(iIndex)
+        # Remove the engine once iterated to save some memory
+        del dDefaultRenderGlobals[sRenderEngine]
+        print "OUTPUT!!", dOutputRenderGlobals
+        self.layer().setRenderGlobalsForCurrentEngine(dOutputRenderGlobals[sRenderEngine])
 
-            # Remove the engine once iterated to save some memory
-            del dDefaultRenderGlobals[sRenderEngine]
-
-        self.dLayers[self.sCurrentLayer]["dRenderGlobals"] = dOutputRenderGlobals
-
-    def addRenderGlobals(self):
+    def addMasterRenderGlobals(self):
         """
-        Sets the default render globals for all render engines available in Sandwich. When a render layer later saves
-        it's settings it will only store what has been edited. Like git.
+        Sets the default render globals for all render engines available in 
+        Sandwich. When a render layer later saves it's settings it will only 
+        store what has been edited.
         """
 
-        self.dRenderGlobals = self.utils.renderGlobals(self.engines())
+        self.dMasterRenderGlobals = self.utils.renderGlobals(self.engines())
 
     def engine(self, sEngine):
         for oEngine in self.lstEngines:
@@ -246,18 +239,6 @@ class MainCore(object):
         """
 
         return self.lstEngines
-
-    def existsShaderInLayer(self, sShaderName, sRenderLayer):
-        """
-        Checks if shader sShaderName exists for render layer sRenderLayer
-        """
-
-        if not sRenderLayer in self.dLayers.keys():
-            print "Sandwich: ERROR! Specified render layer \"%s\" does not exists!" % (sRenderLayer)
-
-            exit()
-
-        return sShaderName in self.dLayers[sRenderLayer]["dShaders"].keys()
 
     def export(self, lstRenderLayers, bAsBinary = True, bAsAscii = False):
         self.out.export(lstRenderLayers, bAsBinary = True, bAsAscii = False)
@@ -290,7 +271,7 @@ class MainCore(object):
         return mc.getAttr(sNodeWithAttribute)
 
     def getDefaultRenderGlobalsItem(self, sRenderEngine, sAttr):
-        for lstItem in self.dDefaultRenderGlobals[sRenderEngine]:
+        for lstItem in self.dMasterRenderGlobals[sRenderEngine]:
             if lstItem[0] == sAttr:
                 return lstItem[1]
 
@@ -421,11 +402,7 @@ class MainCore(object):
         return lstOutput
 
     def getSceneSelectedObjects(self):
-        lstOutput = mc.ls(sl = True)
-        if not lstOutput:
-            lstOutput = []
-
-        return lstOutput
+        return mc.ls(sl = True) or []
 
     def getSceneShaders(self):
         """
@@ -442,10 +419,6 @@ class MainCore(object):
                 lstOutput.append(sSceneSG)
 
         return sorted(lstOutput)
-
-    def getSupportedEngines(self):
-        # TODO: REMOVE? I THINK THIS DOES THE SAME AS engines() ?
-        return ["mental ray", "maya software", "vray"]
 
     def help(self):
         """
@@ -488,30 +461,7 @@ class MainCore(object):
                 return "There is already a render layer with the name \"%s\"! " \
                        "Please change it and try again." % (sLayerName)
 
-        # Add the render layer
-        dNewLayer = {
-            "sComments": "",
-            "sVisibility": "",
-            "dShaders": {},
-            "dAttributes": {},
-            "sOverrideCode": "",
-            "sOverrideMode": "python",
-            "sRevertCode": "",
-            "sRevertMode": "python",
-            "dRenderSettings": {
-                "lstCameraName": [False, ""],
-                "lstResolution": [False, "", ""],
-                "lstRange": [False, "", "", ""],
-                "lstRenderEngine": [False, ""],
-            },
-            "dRenderGlobals": {},
-        }
-
-        # Add all supported render engines
-        for oRenderEngine in self.lstEngines:
-            dNewLayer["dRenderGlobals"][oRenderEngine.engineName()] = []
-
-        oLayer = libLayer.Layer(self, sLayerName, dNewLayer)
+        oLayer = libLayer.Layer(self, sLayerName)
         self.lstLayers.append(oLayer) 
 
         # Set the new layer to the current working layer
@@ -543,9 +493,8 @@ class MainCore(object):
             dData = self.utils.renderGlobals(self.engines())
             self.node.saveDefaultRenderGlobals(dData)
 
-        self.dRenderGlobals = dData
-        self.setDefaultRenderGlobals(dData)
-
+        self.dMasterRenderGlobals = dData
+        
         # Load the Sandwich globals
         dData = self.node.globals()
 
@@ -590,7 +539,8 @@ class MainCore(object):
         to revert all attributes. This is to prevent cases where the old override value for an attribute still would
         exists instead of the revert value when changing into a new attribute name.
         """
-
+        print "revertRenderLayerAttributes() - TEMPORARILY DISABLED!"
+        return
         dAttributeData = self.node.getLayerAttributesData(self.sCurrentLayer)
 
         for sAttributeName in dAttributeData.keys():
@@ -613,9 +563,7 @@ class MainCore(object):
         for oLayer in self.lstLayers:
             if oLayer.layerName() == sLayerName:
                 self.oCurrentLayer = oLayer
-
-    def setDefaultRenderGlobals(self, dData):
-        self.dDefaultRenderGlobals = dData
+                self.node.saveSelected(sLayerName)
 
     def setGlobals(self, dData):
         self.dGlobals = dData
@@ -623,25 +571,13 @@ class MainCore(object):
     def setGlobalsValue(self, sValueName, xValue):
         self.dGlobals[sValueName] = xValue
 
-    def setRenderViewEngine(self, sRenderEngine):
-        """
-        Sets the current render engine in Maya's Render View
-        """
-
-        # TODO: TEMP SOLUTION!!
-        for oEngine in self.lstEngines:
-            if oEngine.engineName() == sRenderEngine:
-                break
-
-        self.utils.setRenderViewEngine(oEngine)
-
     def transferShader(self, sShaderName, sRenderLayer):
         """
         Transfer shader sShaderName from current render layer to layer sRenderLayer.
         """
 
-        self.dLayers[sRenderLayer]["dShaders"][sShaderName] = \
-            self.dLayers[self.sCurrentLayer]["dShaders"][sShaderName]
+        sAssignment = self.layer().shaderAssignment(sShaderName)
+        self.layer(sRenderLayer).addShader(sShaderName, sAssignment)
 
         # Re-save the specified render layer into Sandwich's scene node
         self.node.save(self.layer(sRenderLayer))

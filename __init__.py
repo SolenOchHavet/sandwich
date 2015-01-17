@@ -53,8 +53,20 @@ class Sandwich(QMainWindow):
         self.setGeometry(90, 90, 840, 430)
         self.statusBar()
 
-        # File menu - Containing Render, Export and Globals
-        fileMenu = QMenu("File", menuBar)
+        # File menu
+        fileMenu = QMenu("&File", menuBar)
+
+        # File > New Layer... 
+        action = fileMenu.addAction("New Layer...")
+        action.setShortcut("Ctrl+Shift+N")
+        action.triggered.connect(self.frame.sgnNewLayer)
+
+        # File > Save Layer 
+        action = fileMenu.addAction("Save Layer")
+        action.setShortcut("Ctrl+Shift+S")
+        action.triggered.connect(self.frame.sgnSaveLayer)
+
+        fileMenu.addSeparator()
 
         # File > Render... 
         action = fileMenu.addAction("Render...")
@@ -64,16 +76,25 @@ class Sandwich(QMainWindow):
         action = fileMenu.addAction("Export...")
         action.triggered.connect(self.frame.sgnLaunchExport)
 
-        # File > Globals... 
-        action = fileMenu.addAction("Globals...")
+        # File menu
+        editMenu = QMenu("&Edit", menuBar)
+
+        # Edit > Rename Layer...
+        action = editMenu.addAction("Rename Layer...")
+        action.triggered.connect(self.frame.sgnNewLayer)
+
+        editMenu.addSeparator()
+
+        # Edit > Globals... 
+        action = editMenu.addAction("Globals...")
         action.triggered.connect(self.frame.sgnLaunchGlobals)        
 
         # Layer menu - Containing all layer controls and layers
-        self.layerMenu = QMenu("Layer", menuBar)
+        self.layerMenu = QMenu("&Layer", menuBar)
 
         # View menu - Containing controls over what should be visible
         # in Sandwich's interface
-        self.viewMenu = QMenu("View", menuBar)
+        self.viewMenu = QMenu("&View", menuBar)
 
         # View - Toolbar
         action = self.viewMenu.addAction("Toolbar")
@@ -90,7 +111,7 @@ class Sandwich(QMainWindow):
         action.triggered.connect(self.frame.sgnSwitchRenderLayersForToolbar)
 
         # Help menu - Sandwich Help and About Sandwich
-        helpMenu = QMenu("Help", menuBar)
+        helpMenu = QMenu("&Help", menuBar)
         action = helpMenu.addAction("Sandwich Help")
         action.triggered.connect(self.core.help)
 
@@ -101,11 +122,12 @@ class Sandwich(QMainWindow):
         
         # Assemble the menues
         menuBar.addMenu(fileMenu)
+        menuBar.addMenu(editMenu)
         menuBar.addMenu(self.layerMenu)
         menuBar.addMenu(self.viewMenu)
         menuBar.addMenu(helpMenu)
 
-        self.frame.uiUpdateViewMenu(self.frame.sSelectedLayerName)
+        self.frame.uiUpdateViewMenu(self.core.layer().layerName())
 
         # If first run, force Sandwich to show Globals where user has
         # to confirm the settings

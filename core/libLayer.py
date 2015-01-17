@@ -193,7 +193,7 @@ class Layer(object):
         self.utils.applyCode(self.overrideMode(), self.overrideCode())
 
         # Set the current render engine as the default in the Render View
-        self.parent.setRenderViewEngine(self.renderEngine().engineName())
+        self.utils.setRenderViewEngine(self.renderEngine())
 
     def fileName(self):
         """
@@ -202,6 +202,13 @@ class Layer(object):
         """
 
         return self.utils.sceneName() + "_" + self.sLayerName
+
+    def hasShader(self, sShaderName):
+        """
+        Check if layer has shader sShaderName
+        """
+
+        return sShaderName in self.dLayerData["dShaders"].keys()
 
     def incFrame(self):
         """
@@ -409,6 +416,16 @@ class Layer(object):
         """
 
         self.dLayerData["sOverrideCode"] = sText
+
+    def setRenderGlobals(self, dData = {}):
+        """
+
+        """
+
+        self.dLayerData["dRenderGlobals"] = dData
+
+    def setRenderGlobalsForCurrentEngine(self, dData = {}):
+        self.dLayerData["dRenderGlobals"][self.renderEngine().engineName()] = dData
 
     def setRenderSetting(self, sRenderSetting, lstData):
         """

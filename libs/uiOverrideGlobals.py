@@ -36,7 +36,8 @@ class UI(object):
         Loads all supported render engines in combo box "Override Engine"
         """
         
-        self.engineCombo.addItems(self.core.getSupportedEngines())
+        for oEngine in self.core.engines():
+            self.engineCombo.addItems(oEngine.displayName())
 
     # RENAMED FROM: uiLoadRenderSettings
     def uiLoadOverrideGlobals(self):
@@ -63,8 +64,9 @@ class UI(object):
         self.endField.setText(lstRange[2])
         self.stepField.setText(lstRange[3])
 
+        iIndex = self.engineCombo.findText(lstRenderEngine[1])
         if lstRenderEngine[1]:
-            self.engineCombo.setCurrentIndex(self.core.getSupportedEngines().index(lstRenderEngine[1]))
+            self.engineCombo.setCurrentIndex(iIndex)
 
         else:
             self.engineCombo.setCurrentIndex(0)

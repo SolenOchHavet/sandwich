@@ -84,8 +84,6 @@ class GlobalsDialog(QDialog, signalsGlobals.Signals, uiGlobals.UI):
         self.endField.setValidator(rangeValidator)
         self.stepField.setValidator(rangeValidator)
 
-        self.engineCombo.addItems(self.core.getSupportedEngines())
-
         # Widget Status Tips
         self.engineLabel.setStatusTip("Select the default render engine for all render layers.")
         self.engineCombo.setStatusTip("Select the default render engine for all render layers.")

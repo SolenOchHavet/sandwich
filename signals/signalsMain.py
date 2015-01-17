@@ -17,7 +17,7 @@ except:
 class Signals(object):
     def __init__(self):
         # The Toolbar
-        self.toolbar.newlayerButton.released.connect(self.sgnAddNewLayer)
+        self.toolbar.newlayerButton.released.connect(self.sgnNewLayer)
         self.toolbar.renameLayerButton.released.connect(self.sgnRenameLayer)
         self.toolbar.savelayerButton.released.connect(self.sgnSaveLayer)
         self.toolbar.renderButton.released.connect(self.sgnLaunchRender)
@@ -28,21 +28,6 @@ class Signals(object):
         self.dataTree.itemSelectionChanged.connect(self.sgnSelectLayer)
         self.dataTree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.dataTree.customContextMenuRequested.connect(self.sgnContextMenuForRenderLayersList)
-
-    def sgnAddNewLayer(self):
-        """
-        When user clicks the button "New Layer..." to add a new render layer
-        """
-
-        sNewLayer = self.uiGetNewRenderLayer()
-
-        if sNewLayer:
-            self.core.newLayer(sNewLayer)
-            self.core.layer().save()
-
-            self.uiLoadRenderLayers()
-
-            self.sgnSelectLayer()
 
     def sgnContextMenuForRenderLayersList(self, position):
         """
@@ -93,6 +78,21 @@ class Signals(object):
         """
 
         self.parent.showRender()
+
+    def sgnNewLayer(self):
+        """
+        When user clicks the button "New Layer..." to add a new render layer
+        """
+
+        sNewLayer = self.uiGetNewRenderLayer()
+
+        if sNewLayer:
+            self.core.newLayer(sNewLayer)
+            self.core.layer().save()
+
+            self.uiLoadRenderLayers()
+
+            self.sgnSelectLayer()
 
     def sgnRenameLayer(self):
         """

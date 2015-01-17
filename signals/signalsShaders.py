@@ -164,7 +164,7 @@ class Signals(object):
             return
 
         # Check if selected shader already exists for the destination layer
-        if self.core.existsShaderInLayer(self.sSelectedShader, sDestinationLayer):
+        if self.core.layer(sDestinationLayer).hasShader(self.sSelectedShader):
             # If the shader exists, ask the user if we can proceed. Otherwise abort
             bResult = self.uiAsk("Continue transfer?", "The shader \"%s\" does " \
                 "already exists for render layer \"%s\". Do you wish to " \

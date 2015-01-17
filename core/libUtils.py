@@ -54,6 +54,9 @@ class Utils(object):
         Executes the MEL code inside the sMelCode string.
         """
 
+        if not sCode.strip():
+            return
+
         if sMode == "mel":
             try:
                 mel.eval(sMelCode)
@@ -73,7 +76,9 @@ class Utils(object):
         Apply the render globals using a huge dictionary containing all data
         for each render engine.
         """
-        
+        print "applyRenderGlobals()!!!! - DISABLED TEMPORARILY!"
+        return
+        print "---", lstEngines, dDataPerEngine
         for oRenderEngine in lstEngines:
             # If engine is not installed on the machine, then skip it
             if not oRenderEngine.isInstalled():
@@ -85,10 +90,11 @@ class Utils(object):
 
             for lstSetting in dDataPerEngine[oRenderEngine.engineName()]:
                 sAttrPath = lstSetting[0]
-
+                print "lstSetting", lstSetting
                 for lstNode in oRenderEngine.nodes():
+                    print "lstNode", lstNode
                     sAttrPath = re.sub("^\\" + lstNode[1], lstNode[0], sAttrPath)
-
+                    print "sAttrPath", sAttrPath
                 try:
                     # Try to brute force set the attribute. If we fail we handle them separately
                     mc.setAttr(sAttrPath, lstSetting[1])
@@ -341,6 +347,10 @@ class Utils(object):
         dOutput = {}
 
         for oRenderEngine in lstEngines:
+            # Skip engines that are not installed
+            if not oRenderEngine.isInstalled():
+                continue
+
             sRenderEngine = oRenderEngine.engineName()
 
             # Reset the render globals for the specified engine
@@ -408,7 +418,7 @@ class Utils(object):
 
                                 dOutput[sRenderEngine].append(
                                     (sCompoundPath, mc.getAttr(sCompoundPath)))
-
+        print "COMING OUT OF utils.renderGlobals()::", dOutput
         return dOutput
 
     def resetShading(self):

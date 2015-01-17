@@ -23,8 +23,6 @@ from functools import partial
 
 class UI(object):
     def __init__(self):
-        self.sSelectedLayerName = self.core.layer().layerName()
-
         self.uiLoadRenderLayers()
         self.uiUpdateWindowTitle()
         self.uiValidate()
@@ -44,7 +42,7 @@ class UI(object):
         # Adding extra space at the end to make the dialog extra wide :)
         lstResult = QInputDialog.getText(self, "Rename Render Layer",
             "Enter the new name of the render layer:         ",
-            QLineEdit.Normal, self.sSelectedLayerName)
+            QLineEdit.Normal, self.core.layer().layerName())
 
         return self._getResult(lstResult)
 
@@ -71,7 +69,7 @@ class UI(object):
         self.dataTree.blockSignals(False)
 
     def uiLoadSelectedRenderLayer(self):
-        if self.sSelectedLayerName == "masterLayer":
+        if self.core.layer().layerName() == "masterLayer":
             self.overviewFrame.descriptionField.clear()
             self.visibilityFrame.visibilityField.clear()
             self.shadersFrame.shaderList.clear()
@@ -141,7 +139,7 @@ class UI(object):
         self.dataTree.setCurrentRow(iIndex)
         self.dataTree.blockSignals(False)
 
-        self.core.layer(self.sSelectedLayerName).remove()
+        self.core.layer(self.core.layer().layerName()).remove()
 
     def uiSaveSelectedRenderLayer(self):
         lstSelection = self.dataTree.selectedItems()
@@ -210,7 +208,7 @@ class UI(object):
             # Check the result and and return what we should do
             if result == deleteAction:
                 # Checks if user tries to delete masterlayer. In that case return None
-                if re.search("masterlayer", self.sSelectedLayerName, re.IGNORECASE):
+                if re.search("masterlayer", self.core.layer().layerName(), re.IGNORECASE):
                     return None
 
                 else:
@@ -218,21 +216,6 @@ class UI(object):
 
     def uiUpdateViewMenu(self, sSelectedLayerName = None):
         self.parent.layerMenu.clear()
-
-        # Layer > Save layer
-        action = self.parent.layerMenu.addAction("Save layer")
-        action.triggered.connect(self.sgnSaveLayer)
-
-        # Layer > New layer... 
-        action = self.parent.layerMenu.addAction("New layer...")
-        action.triggered.connect(self.sgnAddNewLayer)
-
-        # Layer > Rename layer...
-        action = self.parent.layerMenu.addAction("Rename layer...")
-        action.triggered.connect(self.sgnRenameLayer)
-
-        self.parent.layerMenu.addSeparator()
-
         actionGroup = QActionGroup(self.parent.layerMenu)
 
         for oLayer in self.core.layers():

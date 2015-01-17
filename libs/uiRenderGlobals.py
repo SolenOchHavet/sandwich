@@ -41,64 +41,59 @@ class UI(object):
         self.iCurrentRow = 0
 
         # Get the render globals data from the core
-        sRenderEngine = self.core.layer().renderEngine().engineName()
-        dRenderGlobals = self.core.getLayerRenderGlobals()
-        print "Loading render globals!!", sRenderEngine
+        oRenderEngine = self.core.layer().renderEngine()
+        dRenderGlobals = self.core.layer().renderGlobals()
+        print "Loading render globals!!", oRenderEngine
         print "overrides!", dRenderGlobals
-        # Draw the render globals. However depending on the engine there are a few arguments that differs
-        if sRenderEngine == "mental ray":
-            self.uiLoadScrollArea("mentalray", dRenderGlobals["mentalray"],
-                self.parent.maya.dMentalRay, self.core.translateMentalRayAttr,
-                self.parent.maya.getMentalRaySection)
-
-        elif sRenderEngine == "maya software":
-            self.uiLoadScrollArea("software", dRenderGlobals["software"],
-                self.parent.maya.dSoftware, self.core.translateSoftwareAttr,
-                self.parent.maya.getSoftwareSection)
+        # Draw the render globals overrides that have been done for the current
+        # render layer
+        self.uiLoadScrollArea(oRenderEngine, dRenderGlobals)
 
         self.scrollLayout.setRowStretch(self.iCurrentRow, 1)
 
-    def uiLoadScrollArea(self, sRenderEngine, lstOverrideAttrs, dRenderGlobals,
-            funcTranslateAttr, funcGetSection):
-        print "!!", lstOverrideAttrs, dRenderGlobals
+    def uiLoadScrollArea(self, oRenderEngine, dRenderGlobals):
         # Loop through all sections on render globals for selected render engine
-        lstIds = dRenderGlobals.keys()
-        lstIds.sort()
-
         sLabelCss = "<div style=\"width:100%s;background-color:#4e4e4e;margin-left:45px;font-size:13px;" \
                     "font-weight:bold;border-bottom:solid 1 #616161;\">%s</span>"
-
-        for iId in lstIds:
+        sRenderEngine = oRenderEngine.engineName()
+        print dRenderGlobals
+        iIndex = 0
+        for iId in sorted(dRenderGlobals.keys()):
+            print "ID", iId
             # Loop through all attributes within a section
-            for sAttrName in dRenderGlobals[iId].split(":"):
+            for lstAttr in dRenderGlobals[iId]:
+                print lstAttr, # sAttrName...? 
+                sNodeWithAttr = lstAttr[0]
                 # Check if attribute is a part of the overridden attributes
-                bFound = False
-                iIndex = 0
+                # bFound = False
+                
 
-                for lstAttr in lstOverrideAttrs:
-                    if sAttrName == lstAttr[0]:
-                        bFound = True
-                        break
+                # for lstAttr in lstOverrideAttrs:
+                #     if sAttrName == lstAttr[0]:
+                #         bFound = True
+                #         break
 
-                    iIndex += 1
+                #     iIndex += 1
 
-                if not bFound:
-                    continue
+                # if not bFound:
+                #     continue
 
-                # If this attribute is the first hit in this section then make a label
-                if self.iCurrentId != iId:
-                    sSection = funcGetSection(iId)
-                    qSectionLabel = QLabel(sLabelCss % ("%", sSection))
-                    self.scrollLayout.addWidget(qSectionLabel, self.iCurrentRow, 0, 1, 3, Qt.AlignBottom)
+                # # If this attribute is the first hit in this section then make a label
+                # if self.iCurrentId != iId:
+                #     sSection = funcGetSection(iId)
+                #     qSectionLabel = QLabel(sLabelCss % ("%", sSection))
+                #     self.scrollLayout.addWidget(qSectionLabel, self.iCurrentRow, 0, 1, 3, Qt.AlignBottom)
 
-                    # Do this check to skip first section to have this height
-                    if self.iCurrentId != None:
-                        self.scrollLayout.setRowMinimumHeight(self.iCurrentRow, 25)
+                #     # Do this check to skip first section to have this height
+                #     if self.iCurrentId != None:
+                #         self.scrollLayout.setRowMinimumHeight(self.iCurrentRow, 25)
 
-                    self.iCurrentRow += 1
-                    self.iCurrentId = iId
+                #     self.iCurrentRow += 1
+                #     self.iCurrentId = iId
 
-                sNodeWithAttr = funcTranslateAttr(lstAttr[0])
+                # Translate the node path
+                for lstRow in oRenderEngine.nodes():
+                    sNodeWithAttr = sNodeWithAttr.replace(lstRow[1], lstRow[0])
 
                 # Get type of attribute as an ID
                 iTypeId = self.core.getAttributeType(sNodeWithAttr)
@@ -154,7 +149,7 @@ class UI(object):
 
                 self.iCurrentRow += 1
 
-                lstOverrideAttrs.pop(iIndex)
+                #lstOverrideAttrs.pop(iIndex)
 
         # Add stretching to the end of the layout
         self.scrollLayout.setRowStretch(self.iCurrentRow, 1)
