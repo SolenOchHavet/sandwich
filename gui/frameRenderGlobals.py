@@ -35,21 +35,31 @@ class RenderGlobalsFrame(QFrame, ui.UI):
         self.mainLayout = QVBoxLayout()
 
         # Widgets
-        self.bodyWidget = QWidget()
-        self.scrollLayout = QGridLayout(self.bodyWidget)
-        self.areaScroll = QScrollArea()
+        self.dataTree = QTreeWidget()
+        # self.bodyWidget = QWidget()
+        # self.scrollLayout = QGridLayout(self.bodyWidget)
+        # self.areaScroll = QScrollArea()
 
-        # Widget Settings
-        self.areaScroll.setWidgetResizable(True)
-        self.areaScroll.setWidget(self.bodyWidget)
+        # # Widget Settings
+        # self.areaScroll.setWidgetResizable(True)
+        # self.areaScroll.setWidget(self.bodyWidget)
 
         # Layout
-        self.mainLayout.addWidget(self.areaScroll, 1)
+        self.mainLayout.addWidget(self.dataTree, 1)
+        # self.mainLayout.addWidget(self.areaScroll, 1)
 
-        # Layout Settings
-        self.scrollLayout.setColumnStretch(0, 1)
-        self.scrollLayout.setColumnStretch(1, 3)
-        self.scrollLayout.setSpacing(1)
+        # Widget Settings
+        self.dataTree.setRootIsDecorated(False)
+        self.dataTree.setColumnCount(3)
+        self.dataTree.setHeaderLabels(["Render Setting", "Value", ""])
+        self.dataTree.setColumnWidth(0, 200)
+        self.dataTree.setColumnWidth(1, 350)
+        self.dataTree.setColumnWidth(2, 50)
+
+        # # Layout Settings
+        # self.scrollLayout.setColumnStretch(0, 1)
+        # self.scrollLayout.setColumnStretch(1, 3)
+        # self.scrollLayout.setSpacing(1)
         self.setLayout(self.mainLayout)
 
         ui.UI.__init__(self)

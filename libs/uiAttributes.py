@@ -46,7 +46,7 @@ class UI(object):
                 widget.deleteLater()
 
     def uiGetAttributeContentAsList(self):
-        return self.core.getOnlyObjects(unicode(self.assignField.toPlainText()).strip())
+        return self.core.utils.objectsOnly(unicode(self.assignField.toPlainText()).strip())
 
     def uiGetAttributeContentAsString(self):
         return unicode(self.assignField.toPlainText())

@@ -338,6 +338,28 @@ class Utils(object):
         else:
             return sValue
 
+    def objectsOnly(self, sText):
+        """
+        Returns a list of all objects specifies in the text. Any Python comment
+        inside the text will be removed
+        """
+
+        sOutput = ""
+
+        for sLine in re.split("\n", sText.strip()):
+            reFindComment = re.search("#", sLine)
+            if reFindComment:
+                # If we find a comment, we will remove that part
+                # of the line. If comment however start at position
+                # zero, then we will skip it
+                if reFindComment.start():
+                    sOutput += sLine[0:reFindComment.start()].strip() + "\n"
+
+            else:
+                sOutput += sLine.strip() + "\n"
+
+        return re.split("\\s+", sOutput)
+
     def renderGlobals(self, lstEngines):
         """
         Returns a dictionary with an entry for each render engine which 
@@ -420,6 +442,54 @@ class Utils(object):
                                     (sCompoundPath, mc.getAttr(sCompoundPath)))
         print "COMING OUT OF utils.renderGlobals()::", dOutput
         return dOutput
+
+    def reorganizeContent(self, sText):
+        """
+        Reorganizes the sText in alphabetical order. Takes Python comments into
+        consideration, meaning that everything up to comment gets sorted for 
+        itself
+        """
+
+        sOutput = ""
+        sSection = ""
+
+        for sLine in re.split("\n", sText.strip()):
+            reIsComment = re.search("#", sLine)
+
+            if reIsComment:
+                # When a comment has been found, we will sort the
+                # current content of sSection and add it to sOutput
+                if sSection:
+                    lstContent = sorted(re.split("\\s+", sSection))
+                    sOutput += string.join(lstContent, " ").strip() + "\n\n"
+                    sSection = ""
+
+                # There are two ways of making comments. One type is
+                # by having a complete row being a comment and the other
+                # one could be just after some objects. In the later
+                # mentioned way, we need to sort that line separately
+
+                sTemp = sLine[0:reIsComment.start()]
+                if sTemp.strip():
+                    # We have a line with objects and comments at the end
+                    sNewLine = string.join(sorted(re.split("\\s+", sTemp)), " ")
+                    sNewLine += "  " + sLine[reIsComment.start():]
+
+                    sOutput += sNewLine.strip() + "\n\n"
+
+                else:
+                    # This line is only a comment
+                    sOutput += sLine.strip() + "\n"
+
+            else:
+                sSection += sLine
+
+        # If there was content after the last found comment, we will add it
+        if sSection:
+            lstContent = sorted(re.split("\\s+", sSection))
+            sOutput += string.join(lstContent, " ").strip()
+
+        return sOutput
 
     def resetShading(self):
         """

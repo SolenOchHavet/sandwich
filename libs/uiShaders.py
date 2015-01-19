@@ -76,7 +76,7 @@ class UI(object):
         Any Python comment inside the text field will be removed.
         """
 
-        return self.core.getOnlyObjects(unicode(self.assignField.toPlainText()))
+        return self.core.utils.objectsOnly(unicode(self.assignField.toPlainText()))
 
     def uiGetShaderContentAsString(self):
         """

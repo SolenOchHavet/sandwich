@@ -155,7 +155,7 @@ class Layer(object):
                 continue
 
             # Reset the visibility to false for all objects in each layer
-            lstObjects = self.parent.getOnlyObjects(oLayer.visibility())
+            lstObjects = self.utils.objectsOnly(oLayer.visibility())
             self.utils.applyAttribute("visibility", False, lstObjects)
 
             # Apply the revert section of the Attributes tab
@@ -176,7 +176,7 @@ class Layer(object):
             return
 
         # Now apply our current layer
-        lstObjects = self.parent.getOnlyObjects(self.visibility())
+        lstObjects = self.utils.objectsOnly(self.visibility())
         self.utils.applyVisibility(lstObjects)
 
         for sShaderName in self.shaders():
@@ -465,7 +465,7 @@ class Layer(object):
                 return self.dLayerData["dShaders"][sShaderName]
 
             else:
-                return self.getOnlyObjects(self.dLayerData["dShaders"][sShaderName])
+                return self.utils.objectsOnly(self.dLayerData["dShaders"][sShaderName])
 
         else:
             if not bAsList:

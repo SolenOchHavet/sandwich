@@ -5,8 +5,8 @@
 
 Core "Main"
 
-The main file of Sandwich's core. You can use this from the commandline instead of Sandwich's
-interface if you are hardcore =)
+The main file of Sandwich's core. This core can be used without of the
+interface for any hardcore users out there
 
 """
 
@@ -55,125 +55,6 @@ class MainCore(object):
 
         # Post actions that have to take place after the initialization of above classes
         self.selectLayer(self.node.selected())
-
-    def addGlobals(self):
-        """
-        Adds default globals if they do not exists. Override them if appropriate environment variable exists.
-        """
-
-        if self.dGlobals:
-            return
-
-        self.dGlobals = {
-            "sOutputRenders": "",
-            "sOutputScenes": "",
-            "sDefaultCamera": "",
-            "iWidth": "1024",
-            "iHeight": "576",
-            "iStart": "1",
-            "iEnd": "10",
-            "iStep": "1",
-            "bSettingImportRefs": False,
-            "sTerminalApp": "",
-            "sDefaultEngine": "mentalRay"
-        }
-
-        # If Sandwich's environment variables exists, they will override the
-        # defaults values
-
-        # Check for environment variable SANDWICH_OUTPUT_RENDERS
-        if os.environ.has_key("SANDWICH_OUTPUT_RENDERS"):
-            print "Sandwich: Found environment variable " \
-                  "SANDWICH_OUTPUT_RENDERS. Sets \"Output Renders\" -> %s" % \
-                  (os.environ["SANDWICH_OUTPUT_RENDERS"])
-            self.dGlobals["sOutputRenders"] = os.environ["SANDWICH_OUTPUT_RENDERS"]
-
-        # Check for environment variable SANDWICH_OUTPUT_SCENES
-        if os.environ.has_key("SANDWICH_OUTPUT_SCENES"):
-            print "Sandwich: Found environment variable " \
-                  "SANDWICH_OUTPUT_SCENES. Sets \"Output Scenes\" -> %s" % \
-                  (os.environ["SANDWICH_OUTPUT_SCENES"])
-            self.dGlobals["sOutputScenes"] = os.environ["SANDWICH_OUTPUT_SCENES"]
-
-        # Check for environment variable SANDWICH_RESOLUTION
-        if os.environ.has_key("SANDWICH_RESOLUTION"):
-            sResolution = os.environ["SANDWICH_RESOLUTION"].lower().strip()
-
-            if re.search("^[0-9]+x[0-9]+$", sResolution):
-                print "Sandwich: Found environment variable " \
-                      "SANDWICH_RESOLUTION. Sets \"Default Resolution\" -> %s" % \
-                      (sResolution)
-
-                lstTemp = sResolution.split("x")
-
-                self.dGlobals["iWidth"] = lstTemp[0]
-                self.dGlobals["iHeight"] = lstTemp[1]
-
-            else:
-                print "Sandwich: Warning! Environment variable " \
-                      "SANDWICH_RESOLUTION contained the invalid value: %s. " \
-                      "Must have a syntax like: 1024x576" % \
-                      (sResolution)
-
-        # Check for environment variable SANDWICH_RANGE
-        if os.environ.has_key("SANDWICH_RANGE"):
-            sRange = os.environ["SANDWICH_RANGE"].strip()
-
-            if re.search("^[-,0-9]+ [-,0-9]+ [-,0-9]+$", sRange):
-                lstTemp = sRange.split()
-                print "Sandwich: Found environment variable SANDWICH_RANGE. " \
-                      "Sets \"Default Range\" -> %s-%s@%s" % \
-                      (lstTemp[0], lstTemp[1], lstTemp[2])
-
-                self.dGlobals["iStart"] = lstTemp[0]
-                self.dGlobals["iEnd"] = lstTemp[1]
-                self.dGlobals["iStep"] = lstTemp[2]
-
-            else:
-                print "Sandwich: Warning! Environment variable " \
-                      "SANDWICH_RANGE contained the invalid value: %s. " \
-                      "Must have a syntax like: 1 60 1" % \
-                      (sRange)
-
-        # Check for environment variable SANDWICH_IMPORT_REFERENCES
-        if os.environ.has_key("SANDWICH_IMPORT_REFERENCES"):
-            sSetting = os.environ["SANDWICH_IMPORT_REFERENCES"].strip()
-
-            if re.search("^[0, 1]$", sSetting):
-                print "Sandwich: Found environment variable " \
-                      "SANDWICH_IMPORT_REFERENCES. Sets setting " \
-                      "\"Import references into the scene on export\" -> %s" % \
-                      (bool(sSetting))
-
-                self.dGlobals["bSettingImportRefs"] = bool(sSetting)
-
-            else:
-                print "Sandwich: Warning! Environment variable " \
-                      "SANDWICH_IMPORT_REFERENCES contained the invalid value: %s. " \
-                      "Value must be 0 or 1." % \
-                      (sSetting)
-
-        # Check for environment variable SANDWICH_TERMINAL. Otherwise try
-        # guessing the terminal app
-        if os.environ.has_key("SANDWICH_TERMINAL"):
-            print "Sandwich: Found environment variable SANDWICH_TERMINAL. " \
-                  "Sets \"Terminal App\" -> %s" % \
-                  (os.environ["SANDWICH_TERMINAL"])
-            self.dGlobals["sTerminalApp"] = os.environ["SANDWICH_TERMINAL"]
-
-        else:
-            if sys.platform == "win32":
-                self.dGlobals["sTerminalApp"] = "cmd.exe $BATCHFILE"
-
-            elif sys.platform == "darwin":
-                self.dGlobals["sTerminalApp"] = "open -a terminal $BATCHFILE"
-
-            else:
-                print "Sandwich: Warning! Could not figure out the command " \
-                      "for launching a terminal in your operating system. " \
-                      "Please input it manually in Globals or set the " \
-                      "environment variable SANDWICH_TERMINAL"
-                self.dGlobals["sTerminalApp"] = "/usr/bin/terminal $BATCHFILE"
 
     def addLayerRenderGlobals(self):
         print "addLayerRenderGlobals()!!!"
@@ -316,76 +197,6 @@ class MainCore(object):
         else:
             return string.join(lstOutput, " ")
 
-    def getOnlyObjects(self, sText):
-        """
-        Returns a list of all objects specifies in the text.
-        Any Python comment inside the text will be removed.
-        """
-
-        sOutput = ""
-
-        for sLine in re.split("\n", sText.strip()):
-            reFindComment = re.search("#", sLine)
-            if reFindComment:
-                # If we find a comment, we will remove that part
-                # of the line. If comment however start at position
-                # zero, then we will skip it
-                if reFindComment.start():
-                    sOutput += sLine[0:reFindComment.start()].strip() + "\n"
-
-            else:
-                sOutput += sLine.strip() + "\n"
-
-        return re.split("\\s+", sOutput)
-
-    def getReorganizedContent(self, sText):
-        """
-        Reorganizes the sText in alphabetical order. Takes Python
-        comments into consideration, meaning that everything up to
-        comment gets sorted for itself.
-        """
-
-        sOutput = ""
-        sSection = ""
-
-        for sLine in re.split("\n", sText.strip()):
-            reIsComment = re.search("#", sLine)
-
-            if reIsComment:
-                # When a comment has been found, we will sort the
-                # current content of sSection and add it to sOutput
-                if sSection:
-                    lstContent = sorted(re.split("\\s+", sSection))
-                    sOutput += string.join(lstContent, " ").strip() + "\n\n"
-                    sSection = ""
-
-                # There are two ways of making comments. One type is
-                # by having a complete row being a comment and the other
-                # one could be just after some objects. In the later
-                # mentioned way, we need to sort that line separately
-
-                sTemp = sLine[0:reIsComment.start()]
-                if sTemp.strip():
-                    # We have a line with objects and comments at the end
-                    sNewLine = string.join(sorted(re.split("\\s+", sTemp)), " ")
-                    sNewLine += "  " + sLine[reIsComment.start():]
-
-                    sOutput += sNewLine.strip() + "\n\n"
-
-                else:
-                    # This line is only a comment
-                    sOutput += sLine.strip() + "\n"
-
-            else:
-                sSection += sLine
-
-        # If there was content after the last found comment, we will add it
-        if sSection:
-            lstContent = sorted(re.split("\\s+", sSection))
-            sOutput += string.join(lstContent, " ").strip()
-
-        return sOutput
-
     def getSceneCameras(self):
         lstCameraShapes = mc.ls(type = "camera")
         lstDefaults = ["frontShape", "perspShape", "sideShape", "topShape"]
@@ -502,7 +313,7 @@ class MainCore(object):
             self.setGlobals(dData)
 
         else:
-            self.addGlobals()
+            self.reloadGlobals()
             self.node.saveGlobals(self.dGlobals)
 
     def reloadEngines(self):
@@ -530,10 +341,130 @@ class MainCore(object):
 
         print self.lstEngines
 
+    def reloadGlobals(self):
+        """
+        Adds default globals if they do not exists. Override them if 
+        appropriate environment variable exists
+        """
+
+        if self.dGlobals:
+            return
+
+        self.dGlobals = {
+            "sOutputRenders": "",
+            "sOutputScenes": "",
+            "sDefaultCamera": "",
+            "iWidth": "1024",
+            "iHeight": "576",
+            "iStart": "1",
+            "iEnd": "10",
+            "iStep": "1",
+            "bSettingImportRefs": False,
+            "sTerminalApp": "",
+            "sDefaultEngine": "mentalRay"
+        }
+
+        # If Sandwich's environment variables exists, they will override the
+        # defaults values
+
+        # Check for environment variable SANDWICH_OUTPUT_RENDERS
+        if os.environ.has_key("SANDWICH_OUTPUT_RENDERS"):
+            print "Sandwich: Found environment variable " \
+                  "SANDWICH_OUTPUT_RENDERS. Sets \"Output Renders\" -> %s" % \
+                  (os.environ["SANDWICH_OUTPUT_RENDERS"])
+            self.dGlobals["sOutputRenders"] = os.environ["SANDWICH_OUTPUT_RENDERS"]
+
+        # Check for environment variable SANDWICH_OUTPUT_SCENES
+        if os.environ.has_key("SANDWICH_OUTPUT_SCENES"):
+            print "Sandwich: Found environment variable " \
+                  "SANDWICH_OUTPUT_SCENES. Sets \"Output Scenes\" -> %s" % \
+                  (os.environ["SANDWICH_OUTPUT_SCENES"])
+            self.dGlobals["sOutputScenes"] = os.environ["SANDWICH_OUTPUT_SCENES"]
+
+        # Check for environment variable SANDWICH_RESOLUTION
+        if os.environ.has_key("SANDWICH_RESOLUTION"):
+            sResolution = os.environ["SANDWICH_RESOLUTION"].lower().strip()
+
+            if re.search("^[0-9]+x[0-9]+$", sResolution):
+                print "Sandwich: Found environment variable " \
+                      "SANDWICH_RESOLUTION. Sets \"Default Resolution\" -> %s" % \
+                      (sResolution)
+
+                lstTemp = sResolution.split("x")
+
+                self.dGlobals["iWidth"] = lstTemp[0]
+                self.dGlobals["iHeight"] = lstTemp[1]
+
+            else:
+                print "Sandwich: Warning! Environment variable " \
+                      "SANDWICH_RESOLUTION contained the invalid value: %s. " \
+                      "Must have a syntax like: 1024x576" % \
+                      (sResolution)
+
+        # Check for environment variable SANDWICH_RANGE
+        if os.environ.has_key("SANDWICH_RANGE"):
+            sRange = os.environ["SANDWICH_RANGE"].strip()
+
+            if re.search("^[-,0-9]+ [-,0-9]+ [-,0-9]+$", sRange):
+                lstTemp = sRange.split()
+                print "Sandwich: Found environment variable SANDWICH_RANGE. " \
+                      "Sets \"Default Range\" -> %s-%s@%s" % \
+                      (lstTemp[0], lstTemp[1], lstTemp[2])
+
+                self.dGlobals["iStart"] = lstTemp[0]
+                self.dGlobals["iEnd"] = lstTemp[1]
+                self.dGlobals["iStep"] = lstTemp[2]
+
+            else:
+                print "Sandwich: Warning! Environment variable " \
+                      "SANDWICH_RANGE contained the invalid value: %s. " \
+                      "Must have a syntax like: 1 60 1" % \
+                      (sRange)
+
+        # Check for environment variable SANDWICH_IMPORT_REFERENCES
+        if os.environ.has_key("SANDWICH_IMPORT_REFERENCES"):
+            sSetting = os.environ["SANDWICH_IMPORT_REFERENCES"].strip()
+
+            if re.search("^[0, 1]$", sSetting):
+                print "Sandwich: Found environment variable " \
+                      "SANDWICH_IMPORT_REFERENCES. Sets setting " \
+                      "\"Import references into the scene on export\" -> %s" % \
+                      (bool(sSetting))
+
+                self.dGlobals["bSettingImportRefs"] = bool(sSetting)
+
+            else:
+                print "Sandwich: Warning! Environment variable " \
+                      "SANDWICH_IMPORT_REFERENCES contained the invalid value: %s. " \
+                      "Value must be 0 or 1." % \
+                      (sSetting)
+
+        # Check for environment variable SANDWICH_TERMINAL. Otherwise try
+        # guessing the terminal app
+        if os.environ.has_key("SANDWICH_TERMINAL"):
+            print "Sandwich: Found environment variable SANDWICH_TERMINAL. " \
+                  "Sets \"Terminal App\" -> %s" % \
+                  (os.environ["SANDWICH_TERMINAL"])
+            self.dGlobals["sTerminalApp"] = os.environ["SANDWICH_TERMINAL"]
+
+        else:
+            if sys.platform == "win32":
+                self.dGlobals["sTerminalApp"] = "cmd.exe $BATCHFILE"
+
+            elif sys.platform == "darwin":
+                self.dGlobals["sTerminalApp"] = "open -a terminal $BATCHFILE"
+
+            else:
+                print "Sandwich: Warning! Could not figure out the command " \
+                      "for launching a terminal in your operating system. " \
+                      "Please input it manually in Globals or set the " \
+                      "environment variable SANDWICH_TERMINAL"
+                self.dGlobals["sTerminalApp"] = "/usr/bin/terminal $BATCHFILE"
+
     def render(self, lstRenderLayers, bCurrentFrame = False, bEverything = False):
         self.out.render(lstRenderLayers, bCurrentFrame, bEverything)
 
-    def revertRenderLayerAttributes(self):
+    def revertLayerAttributes(self):
         """
         Before saving the new attribute edits, we must make sure to use the old settings stored in the sandwichNode
         to revert all attributes. This is to prevent cases where the old override value for an attribute still would
@@ -541,7 +472,7 @@ class MainCore(object):
         """
         print "revertRenderLayerAttributes() - TEMPORARILY DISABLED!"
         return
-        dAttributeData = self.node.getLayerAttributesData(self.sCurrentLayer)
+        dAttributeData = self.node.layerAttributes(self.layer().layerName())
 
         for sAttributeName in dAttributeData.keys():
             self.utils.applyAttribute(sAttributeName, dAttributeData[sAttributeName]["sRevertValue"],
@@ -581,17 +512,3 @@ class MainCore(object):
 
         # Re-save the specified render layer into Sandwich's scene node
         self.node.save(self.layer(sRenderLayer))
-
-    def translateMentalRayAttr(self, sNodeWithAttr):
-        sNodeWithAttr = re.sub("\$MG", "mentalrayGlobals", sNodeWithAttr)
-        sNodeWithAttr = re.sub("\$DO", "miDefaultOptions", sNodeWithAttr)
-
-        return re.sub("\$DF", "miDefaultFramebuffer", sNodeWithAttr)
-
-    def translateSoftwareAttr(self, sNodeWithAttr):
-        sNodeWithAttr = re.sub("\$RG", "defaultRenderGlobals", sNodeWithAttr)
-
-        return re.sub("\$RQ", "defaultRenderQuality", sNodeWithAttr)
-
-    def translateVrayAttr(self, sNodeWithAttr):
-        return re.sub("\$VS", "vraySettings", sNodeWithAttr)

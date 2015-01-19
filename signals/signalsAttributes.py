@@ -128,7 +128,7 @@ class Signals(object):
         alphabetically in the text fields
         """
 
-        sNewContent = self.core.getReorganizedContent(
+        sNewContent = self.core.utils.reorganizeContent(
             self.uiGetAttributeContentAsString())
 
         self.uiSetContent(sNewContent)

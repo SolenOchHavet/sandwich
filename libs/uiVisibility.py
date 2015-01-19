@@ -29,7 +29,7 @@ class UI(object):
         Any Python comment inside the text field will be removed.
         """
 
-        return self.core.getOnlyObjects(unicode(self.visibilityField.toPlainText()))
+        return self.core.utils.objectsOnly(unicode(self.visibilityField.toPlainText()))
 
     def uiGetContentAsString(self):
         """

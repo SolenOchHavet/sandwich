@@ -75,14 +75,6 @@ class Node(object):
             if mc.objExists(self.sSwNode + "." + sLayerName + "_" + sSuffix):
                 mc.deleteAttr(self.sSwNode, at = sLayerName + "_" + sSuffix)
 
-    def getLayerAttributesData(self, sRenderLayerName):
-        """
-        Special method to retrieve the current state for the attributes
-        section as a dictionary
-        """
-
-        return eval(mc.getAttr(self.sSwNode + "." + sRenderLayerName + "_attributes"))
-
     def globals(self):
         """
         Returns the default Sandwich globals
@@ -97,6 +89,14 @@ class Node(object):
 
     def isFirstRun(self):
         return self.bIsFirstRun
+
+    def layerAttributes(self, sRenderLayerName):
+        """
+        Special method to retrieve the current state for the attributes
+        section as a dictionary
+        """
+
+        return eval(mc.getAttr(self.sSwNode + "." + sRenderLayerName + "_attributes"))
 
     def layers(self):
         """

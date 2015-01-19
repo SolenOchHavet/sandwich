@@ -40,7 +40,7 @@ class Signals(object):
         alphabetically in the text fields
         """
 
-        sNewContent = self.core.getReorganizedContent(self.uiGetContentAsString())
+        sNewContent = self.core.utils.reorganizeContent(self.uiGetContentAsString())
 
         self.uiSetContent(sNewContent)
         self.uiSaveTabContent()

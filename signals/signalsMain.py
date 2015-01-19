@@ -119,7 +119,7 @@ class Signals(object):
 
         # Now that the core has all the data, save it to the node in the scene
         self.core.saveSelection()
-        self.core.revertRenderLayerAttributes()
+        self.core.revertLayerAttributes()
         self.core.layer().save()
         self.core.layer().execute()
         self.core.revertSelection()

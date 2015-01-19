@@ -130,7 +130,7 @@ class Signals(object):
         Takes Python comments into consideration when the sorting is done.
         """
 
-        sNewContent = self.core.getReorganizedContent(self.uiGetShaderContentAsString())
+        sNewContent = self.core.utils.reorganizeContent(self.uiGetShaderContentAsString())
 
         self.uiSetShaderContent(sNewContent)
         self.uiSaveSelectedShaderContent()
