@@ -107,6 +107,23 @@ class MainCore(object):
 
         self.dMasterRenderGlobals = self.utils.renderGlobals(self.engines())
 
+    def cameras(self):
+        """
+        Returns a list of all available cameras in the scene that are not one
+        of Maya's standard orthographic cameras
+        """
+
+        lstOutput = []
+        lstCameraShapes = mc.ls(type = "camera") or []
+        lstDefaults = ["frontShape", "perspShape", "sideShape", "topShape"]
+        
+        for sCameraShape in lstCameraShapes:
+            if not sCameraShape in lstDefaults:
+                lstTemp = mc.listRelatives(sCameraShape, parent = True)
+                lstOutput.append(lstTemp[0])
+
+        return lstOutput
+
     def engine(self, sEngine):
         for oEngine in self.lstEngines:
             if oEngine.engineName() == sEngine:
@@ -196,21 +213,6 @@ class MainCore(object):
 
         else:
             return string.join(lstOutput, " ")
-
-    def getSceneCameras(self):
-        lstCameraShapes = mc.ls(type = "camera")
-        lstDefaults = ["frontShape", "perspShape", "sideShape", "topShape"]
-        lstOutput = []
-
-        if not lstCameraShapes:
-            lstCameraShapes = []
-
-        for sCameraShape in lstCameraShapes:
-            if not sCameraShape in lstDefaults:
-                lstTemp = mc.listRelatives(sCameraShape, parent = True)
-                lstOutput.append(lstTemp[0])
-
-        return lstOutput
 
     def getSceneSelectedObjects(self):
         return mc.ls(sl = True) or []

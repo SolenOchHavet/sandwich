@@ -10,19 +10,19 @@ Signals for "Export"
 
 class Signals(object):
     def __init__(self):
-        self.layersTree.itemDoubleClicked.connect(self.evtDoubleClickInList)
-        self.exportMaButton.released.connect(self.evtExportAsMa)
-        self.exportMbButton.released.connect(self.evtExportAsMb)
-        self.cancelButton.released.connect(self.evtCancel)
+        self.layersTree.itemDoubleClicked.connect(self.sgnDoubleClickInList)
+        self.exportMaButton.released.connect(self.sgnExportAsMa)
+        self.exportMbButton.released.connect(self.sgnExportAsMb)
+        self.cancelButton.released.connect(self.sgnCancel)
 
-    def evtCancel(self):
+    def sgnCancel(self):
         """
         When user clicks the button "Cancel" to abort the dialog
         """
 
         self.uiCloseWindow()
 
-    def evtDoubleClickInList(self):
+    def sgnDoubleClickInList(self):
         """
         When user double clicks an item in the export list to change the check
         box state rather than clicking the check box
@@ -30,7 +30,7 @@ class Signals(object):
 
         self.uiSwitchSelectedCheckStateInList()
 
-    def evtExportAsMa(self):
+    def sgnExportAsMa(self):
         """
         When user clicks the button "Export as .ma" to export selected render
         layers as Maya Ascii files
@@ -48,7 +48,7 @@ class Signals(object):
 
         self.uiShowResults()
 
-    def evtExportAsMb(self):
+    def sgnExportAsMb(self):
         """
         When user clicks the button "Export as .mb" to export selected render
         layers as Maya Binary files

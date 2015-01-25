@@ -13,9 +13,13 @@ A render layer manager for Maya2012 and forth. Requires either PyQt or PySide.
 
 try:
     from PyQt4.QtGui import *
+    from PyQt4.QtCore import Qt
 
 except:
     from PySide.QtGui import *
+    from PySide.QtCore import Qt
+
+import sys
 
 import libs
 import signals.signalsMain
@@ -127,7 +131,11 @@ class Sandwich(QMainWindow):
         menuBar.addMenu(self.viewMenu)
         menuBar.addMenu(helpMenu)
 
-        self.frame.uiUpdateViewMenu(self.core.layer().layerName())
+        self.frame.uiUpdateViewMenu()
+
+        # If we are on OSX, set the always on top flag
+        if sys.platform == "darwin":
+            self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
         # If first run, force Sandwich to show Globals where user has
         # to confirm the settings
@@ -139,33 +147,33 @@ class Sandwich(QMainWindow):
         Shows the About dialog
         """
 
-        self.aboutDlg = dialogAbout.AboutDialog(self.frame)
-        self.aboutDlg.show()
+        dlg = dialogAbout.AboutDialog(self)
+        dlg.show()
 
     def showExport(self):
         """
         Shows the Export dialog for exporting the layers as scenes
         """
 
-        self.exportDlg = dialogExport.ExportDialog(self.frame, core = self.core)
-        self.exportDlg.show()
+        dlg = dialogExport.ExportDialog(self, core = self.core)
+        dlg.show()
 
     def showGlobals(self, bAsModal = False):
         """
         Shows Sandwich's Globals dialog
         """
 
-        self.globalsDlg = dialogGlobals.GlobalsDialog(self.frame, core = self.core)
+        dlg = dialogGlobals.GlobalsDialog(self, core = self.core)
 
         if bAsModal:
-            self.globalsDlg.setModal(True)
+            dlg.setModal(True)
 
-        self.globalsDlg.show()
+        dlg.show()
 
     def showRender(self):
         """
         Shows the Render dialog for rendering out the layers
         """
 
-        self.renderDlg = dialogRender.RenderDialog(self.frame, core = self.core)
-        self.renderDlg.show()
+        dlg = dialogRender.RenderDialog(self, core = self.core)
+        dlg.show()

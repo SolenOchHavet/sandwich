@@ -24,7 +24,7 @@ class UI(object):
         self.uiValidate()
 
     def uiGetCamera(self):
-        lstCameras = self.core.getSceneCameras()
+        lstCameras = self.core.cameras()
         lstResult = QInputDialog.getItem(self, "Select Camera",
             "Select what camera you wish to use instead of the global one:",
             lstCameras, editable = False)

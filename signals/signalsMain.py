@@ -45,7 +45,8 @@ class Signals(object):
                 return
 
             sTitle = "Remove Render Layer?"
-            sMessage = "Are you sure you wish to remove render layer \"%s\"?" % \
+            sMessage = "Are you sure you wish to remove render layer " \
+                "\"%s\"?" % \
                 (self.sSelectedLayerName)
 
             if self.uiAsk(sTitle, sMessage):
@@ -65,7 +66,7 @@ class Signals(object):
     def sgnLaunchGlobals(self):
         """
         When user clicks the button "Globals..." to launch the Globals dialog
-        to access Sandwich's settings.
+        to access Sandwich's settings
         """
 
         self.parent.showGlobals()
@@ -74,7 +75,7 @@ class Signals(object):
         """
         When user clicks the button "Render..." to launch the Render dialog
         which is Sandwich's render manager for rendering the render layers
-        locally on user's machine. Simple but handy.
+        locally on user's machine. Simple but handy
         """
 
         self.parent.showRender()
@@ -132,7 +133,7 @@ class Signals(object):
         When user selects a render layer in the Render Layers list. Loads all
         the tabs in Sandwich with all settings related to the layer
         """
-        print "MEN JA???"
+        
         if sLayerName:
             self.uiSetRenderLayer(sLayerName)
 
@@ -154,8 +155,8 @@ class Signals(object):
 
     def sgnSwitchRenderLayersForToolbar(self):
         """
-        When user clicks the check box for menu item View > Render Layers
-        to switch the visibility state for the render layers list.
+        When user clicks the check box for menu item View > Render Layers to
+        switch the visibility state for the render layers list
         """
 
         # Get the inverted state for the render layers list visibility
@@ -170,8 +171,8 @@ class Signals(object):
 
     def sgnSwitchVisibilityForToolbar(self):
         """
-        When user clicks the check box for menu item View > Toolbar
-        to switch the visibility state for the toolbar.
+        When user clicks the check box for menu item View > Toolbar to switch
+        the visibility state for the toolbar
         """
 
         # Get the inverted state for the toolbar visibility state

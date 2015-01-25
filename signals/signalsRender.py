@@ -5,19 +5,19 @@
 
 class Signals(object):
     def __init__(self):
-        self.layersList.itemDoubleClicked.connect(self.evtDoubleClickInList)
-        self.renderCurrentButton.released.connect(self.evtRenderCurrentFrame)
-        self.renderAllButton.released.connect(self.evtRenderAllFrames)
-        self.cancelButton.released.connect(self.evtCancel)
+        self.layersList.itemDoubleClicked.connect(self.sgnDoubleClickInList)
+        self.renderCurrentButton.released.connect(self.sgnRenderCurrentFrame)
+        self.renderAllButton.released.connect(self.sgnRenderAllFrames)
+        self.cancelButton.released.connect(self.sgnCancel)
 
-    def evtCancel(self):
+    def sgnCancel(self):
         """
         When user clicks the button "Cancel" to abort the dialog
         """
 
         self.uiCloseWindow()
 
-    def evtDoubleClickInList(self):
+    def sgnDoubleClickInList(self):
         """
         When user double clicks an item in the render list to change the check
         box state rather than clicking the check box
@@ -25,7 +25,7 @@ class Signals(object):
 
         self.uiSwitchSelectedCheckStateInList()
 
-    def evtRenderAllFrames(self):
+    def sgnRenderAllFrames(self):
         """
         When user clicks the button "Render All Frames" to render all frames
         for all selected render layers
@@ -35,10 +35,10 @@ class Signals(object):
 
         self.core.render(self.lstSelectedRenders, bEverything = True)
 
-    def evtRenderCurrentFrame(self):
+    def sgnRenderCurrentFrame(self):
         """
-        When user clicks the button "Render Current Frame" to render the current
-        frame for all selected render layers
+        When user clicks the button "Render Current Frame" to render the 
+        current frame for all selected render layers
         """
 
         self.uiSaveSelectedRenders()

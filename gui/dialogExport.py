@@ -27,7 +27,7 @@ reload(uiExport)
 
 class ExportDialog(QDialog, signalsExport.Signals, uiExport.UI):
     def __init__(self, parent = None, core = None):
-        QDialog.__init__(self)
+        QDialog.__init__(self, parent)
 
         self.parent = parent
         self.core = core

@@ -16,15 +16,15 @@ except:
 
 class Signals(object):
     def __init__(self):
-        self.addattrButton.released.connect(self.evtAddNewAttribute)
-        self.renameattrButton.released.connect(self.evtRenameAttribute)
-        self.addobjectsButton.released.connect(self.evtAddObjects)
-        self.orgobjectsButton.released.connect(self.evtReorganizeObjects)
-        self.attributesList.itemSelectionChanged.connect(self.evtSelectAttribute)
+        self.addattrButton.released.connect(self.sgnAddNewAttribute)
+        self.renameattrButton.released.connect(self.sgnRenameAttribute)
+        self.addobjectsButton.released.connect(self.sgnAddObjects)
+        self.orgobjectsButton.released.connect(self.sgnReorganizeObjects)
+        self.attributesList.itemSelectionChanged.connect(self.sgnSelectAttribute)
         self.attributesList.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.attributesList.customContextMenuRequested.connect(self.evtContextMenu)
+        self.attributesList.customContextMenuRequested.connect(self.sgnContextMenu)
 
-    def evtAddNewAttribute(self):
+    def sgnAddNewAttribute(self):
         """
         When user clicks the button "Add Attribute" below the Attribute tab.
         Let's user add a new attribute
@@ -43,7 +43,7 @@ class Signals(object):
 
             self.uiValidate()
 
-    def evtAddObjects(self):
+    def sgnAddObjects(self):
         """
         When user clicks the button "Add Objects" to add selected objects from
         the scene. Adds only objects that does not yet exists in the list.
@@ -64,13 +64,16 @@ class Signals(object):
             self.uiSaveSelectedAttributeContent()
 
         else:
-            print "Sandwich: No new objects were added because they have already been added!"
+            print "Sandwich: No new objects were added because they have " \
+                "already been added!"
 
-    def evtContextMenu(self, position):
+    def sgnContextMenu(self, position):
         """
-        When user right clicks the list "Attributes" to get the context menu. The context menu contains the items:
-         * Delete Attribute... (code 0). Will remove the attribute after the user confirms the action. However it wont
-           be removed for real until user saves the render layer.
+        When user right clicks the list "Attributes" to get the context menu.
+        The context menu contains the items:
+         * Delete Attribute... (code 0). Will remove the attribute after the 
+           user confirms the action. However it wont be removed for real until
+           user saves the render layer.
         """
 
         iCode = self.uiShowContextMenu(2, position)
@@ -80,17 +83,17 @@ class Signals(object):
             return
 
         if iCode == 0:
-            self.evtRenameAttribute()
+            self.sgnRenameAttribute()
 
         elif iCode == 1:
-            self.evtRemoveAttribute()
+            self.sgnRemoveAttribute()
 
-    def evtRemoveAttribute(self):
+    def sgnRemoveAttribute(self):
         """
         When user clicks the item "Remove Attribute" from the context menu to
         remove selected attribute from the current render layer.
 
-        Note: The changes are not saved until "Save Layer" has been clicked.
+        Note: The changes are not saved until "Save Layer" has been clicked
         """
 
         sTitle = "Remove Attribute?"
@@ -104,12 +107,12 @@ class Signals(object):
             self.uiLoadSelectedAttribute()
             self.uiValidateAttributeTab()
 
-    def evtRenameAttribute(self):
+    def sgnRenameAttribute(self):
         """
         When user clicks the item "Rename Attribute" from the context menu to
         rename selected attribute.
 
-        Note: The changes are not saved until "Save Layer" has been clicked.
+        Note: The changes are not saved until "Save Layer" has been clicked
         """
 
         sRenamedAttribute = self.uiGetRenamedAttribute()
@@ -122,7 +125,7 @@ class Signals(object):
             self.uiSaveSelectedAttribute()
             self.uiLoadSelectedAttribute()
 
-    def evtReorganizeObjects(self):
+    def sgnReorganizeObjects(self):
         """
         When user clicks the button "Reorganize Objects" to organize them
         alphabetically in the text fields
@@ -134,11 +137,11 @@ class Signals(object):
         self.uiSetContent(sNewContent)
         self.uiSaveSelectedAttributeContent()
 
-    def evtSelectAttribute(self):
+    def sgnSelectAttribute(self):
         """
-        When user selected an attribute in the Attribute List. Will make the textfields
-        "Override Value", "Revert Value" and "Assign to These Objects" to show all data
-        related to the attribute
+        When user selected an attribute in the Attribute List. Will make the
+        textfields "Override Value", "Revert Value" and "Assign to These 
+        Objects" to show all data related to the attribute
         """
 
         # When user change selected shader we have to make sure to save his/her

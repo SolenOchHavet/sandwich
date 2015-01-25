@@ -26,7 +26,7 @@ reload(uiGlobals)
 
 class GlobalsDialog(QDialog, signalsGlobals.Signals, uiGlobals.UI):
     def __init__(self, parent = None, core = None):
-        QDialog.__init__(self)
+        QDialog.__init__(self, parent)
 
         self.core = core
 
@@ -43,13 +43,13 @@ class GlobalsDialog(QDialog, signalsGlobals.Signals, uiGlobals.UI):
         self.engineCombo = QComboBox()
         self.rendersLabel = QLabel("Output Renders")
         self.rendersField = QLineEdit()
-        self.rendersButton = QPushButton("Browse")
+        self.rendersButton = QPushButton("Browse...")
         self.scenesLabel = QLabel("Output Scenes")
         self.scenesField = QLineEdit()
-        self.scenesButton = QPushButton("Browse")
+        self.scenesButton = QPushButton("Browse...")
         self.cameraLabel = QLabel("Default Camera")
         self.cameraField = QLineEdit()
-        self.cameraButton = QPushButton("Browse")
+        self.cameraButton = QPushButton("Browse...")
         self.resolutionLabel = QLabel("Default Resolution")
         self.widthField = QLineEdit("1024")
         self.heightField = QLineEdit("576")

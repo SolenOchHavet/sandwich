@@ -16,19 +16,19 @@ except:
 
 class Signals(object):
     def __init__(self):
-        self.addshaderButton.released.connect(self.evtAddNewShader)
-        self.renameshaderButton.released.connect(self.evtRenameShader)
-        self.addobjectsButton.released.connect(self.evtAddObjects)
-        self.orgobjectsButton.released.connect(self.evtReorganizeObjects)
-        self.shaderList.itemActivated.connect(self.evtRenameShader)
-        self.shaderList.itemSelectionChanged.connect(self.evtSelectShader)
+        self.addshaderButton.released.connect(self.sgnAddNewShader)
+        self.renameshaderButton.released.connect(self.sgnRenameShader)
+        self.addobjectsButton.released.connect(self.sgnAddObjects)
+        self.orgobjectsButton.released.connect(self.sgnReorganizeObjects)
+        self.shaderList.itemActivated.connect(self.sgnRenameShader)
+        self.shaderList.itemSelectionChanged.connect(self.sgnSelectShader)
         self.shaderList.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.shaderList.customContextMenuRequested.connect(self.evtContextMenu)
+        self.shaderList.customContextMenuRequested.connect(self.sgnContextMenu)
 
-    def evtAddNewShader(self):
+    def sgnAddNewShader(self):
         """
-        When user clicks the button "Add Shader..." to add a new shader to
-        the current render layer
+        When user clicks the button "Add Shader..." to add a new shader to the
+        current render layer
         """
 
         sNewShader = self.uiGetNewShader()
@@ -44,12 +44,12 @@ class Signals(object):
 
             self.uiValidate()
 
-    def evtAddObjects(self):
+    def sgnAddObjects(self):
         """
-        When user clicks the button "Add Objects..." to add selected objects from the
-        Maya scene into the selected shader's "Assign to these Objects" textfield.
-        Adds only objects that does not yet exists in the list. Supports object
-        expressions.
+        When user clicks the button "Add Objects..." to add selected objects 
+        from the Maya scene into the selected shader's "Assign to these 
+        Objects" textfield. Adds only objects that does not yet exists in the
+        list. Supports object expressions
         """
 
         # Get what we currently have in the interface and what's selected
@@ -67,9 +67,10 @@ class Signals(object):
             self.uiSaveSelectedShaderContent()
 
         else:
-            print "Sandwich: No new objects were added because they have already been added!"
+            print "Sandwich: No new objects were added because they have " \
+                "already been added!"
 
-    def evtContextMenu(self, position):
+    def sgnContextMenu(self, position):
         """
         When user right clicks the list "Shaders" to get the context menu. The
         context menu contains the items:
@@ -81,18 +82,18 @@ class Signals(object):
         iCode = self.uiShowContextMenu(position)
 
         if iCode == 0:
-            self.evtRenameShader()
+            self.sgnRenameShader()
 
         if iCode == 1:
-            self.evtTransferShader()
+            self.sgnTransferShader()
 
         if iCode == 2:
-            self.evtRemoveShader()
+            self.sgnRemoveShader()
 
-    def evtRemoveShader(self):
+    def sgnRemoveShader(self):
         """
-        When user clicks the item "Rename Shader..." from the context menu to remove
-        selected shader from the current render layer.
+        When user clicks the item "Rename Shader..." from the context menu to 
+        remove selected shader from the current render layer
         """
 
         # Abort if no shader is selected!
@@ -109,10 +110,10 @@ class Signals(object):
             self.uiLoadSelectedShader()
             self.uiValidate()
 
-    def evtRenameShader(self):
+    def sgnRenameShader(self):
         """
-        When user clicks the item "Rename Shader..." from the context menu to rename
-        selected shader.
+        When user clicks the item "Rename Shader..." from the context menu to
+        rename selected shader
         """
 
         sRenamedShader = self.uiGetRenamedShaders()
@@ -124,22 +125,24 @@ class Signals(object):
             self.uiSaveSelectedShader()
             self.uiLoadSelectedShader()
 
-    def evtReorganizeObjects(self):
+    def sgnReorganizeObjects(self):
         """
-        When user clicks the button "Reorganize Objects" to organize the objects field.
-        Takes Python comments into consideration when the sorting is done.
+        When user clicks the button "Reorganize Objects" to organize the 
+        objects field. Takes Python comments into consideration when the 
+        sorting is done
         """
 
-        sNewContent = self.core.utils.reorganizeContent(self.uiGetShaderContentAsString())
+        sNewContent = self.core.utils.reorganizeContent(
+            self.uiGetShaderContentAsString())
 
         self.uiSetShaderContent(sNewContent)
         self.uiSaveSelectedShaderContent()
 
-    def evtSelectShader(self):
+    def sgnSelectShader(self):
         """
-        When user selected a shader in the Shader List below the Shaders tab. Will make
-        the textfield "Assign to These Objects" to show which objects the selected
-        shader should be applied to.
+        When user selected a shader in the Shader List below the Shaders tab.
+        Will make the textfield "Assign to These Objects" to show which objects
+        the selected shader should be applied to
         """
 
         # When user change selected shader we have to make sure to save his/her
@@ -151,11 +154,11 @@ class Signals(object):
 
         self.uiValidate()
 
-    def evtTransferShader(self):
+    def sgnTransferShader(self):
         """
-        When user clicks the item "Transfer Shader..." in the context menu of a selected
-        shader in order to copy it into another layer. If it already exists there, user
-        will be asked before it gets transfered.
+        When user clicks the item "Transfer Shader..." in the context menu of a
+        selected shader in order to copy it into another layer. If it already 
+        exists there, user will be asked before it gets transferred
         """
 
         sDestinationLayer = self.uiGetDestinationLayer()
@@ -165,10 +168,11 @@ class Signals(object):
 
         # Check if selected shader already exists for the destination layer
         if self.core.layer(sDestinationLayer).hasShader(self.sSelectedShader):
-            # If the shader exists, ask the user if we can proceed. Otherwise abort
-            bResult = self.uiAsk("Continue transfer?", "The shader \"%s\" does " \
-                "already exists for render layer \"%s\". Do you wish to " \
-                "overwrite it?\n\nThe transfer will be saved without " \
+            # If the shader exists, ask the user if we can proceed. Otherwise 
+            # abort
+            bResult = self.uiAsk("Continue transfer?", "The shader \"%s\" " \
+                "does already exists for render layer \"%s\". Do you wish " \
+                "to overwrite it?\n\nThe transfer will be saved without " \
                 "affecting the current layer." %
                 (self.sSelectedShader, sDestinationLayer))
 

@@ -70,9 +70,9 @@ class UI(object):
             return True
 
     def uiGetNewCamera(self):
-        lstCameras = self.core.getSceneCameras()
+        lstCameras = self.core.cameras()
         lstResult = QInputDialog.getItem(self, "Select Camera",
-                                         "Select what camera you wish to use " \
+            "Select what camera you wish to use " \
                                          "instead of the global one:",
                                          lstCameras, editable = False)
 
@@ -98,14 +98,25 @@ class UI(object):
         return self.uiGetNewFolder(sTitle, sCurrentFolderPath)
 
     def uiLoadGlobals(self):
-        for oEngine in self.core.engines():
-            self.engineCombo.addItem(oEngine.displayName(), oEngine)
+        # Load the list of all engines available for Sandwich. Any engine that
+        # is not installed will be noted in the name
+        iIndex = 0
+        iSelectIndex = 0
 
-        sDefaultEngine = self.core.getGlobalsValue("sDefaultEngine")
-        iIndex = self.engineCombo.findText(sDefaultEngine)
-        
-        if iIndex != -1:
-            self.engineCombo.setCurrentIndex(iIndex)
+        for oEngine in self.core.engines():
+            sLabel = oEngine.displayName()
+
+            if not oEngine.isInstalled():
+                sLabel += " (not installed)"
+
+            self.engineCombo.addItem(sLabel, oEngine)
+
+            if oEngine.displayName() == self.core.getGlobalsValue("sDefaultEngine"):
+                iSelectIndex = iIndex
+
+            iIndex += 1
+
+        self.engineCombo.setCurrentIndex(iSelectIndex)
 
         self.rendersField.setText(self.core.getGlobalsValue("sOutputRenders"))
         self.scenesField.setText(self.core.getGlobalsValue("sOutputScenes"))

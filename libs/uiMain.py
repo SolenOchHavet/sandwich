@@ -214,7 +214,7 @@ class UI(object):
                 else:
                     return 0
 
-    def uiUpdateViewMenu(self, sSelectedLayerName = None):
+    def uiUpdateViewMenu(self):
         self.parent.layerMenu.clear()
         actionGroup = QActionGroup(self.parent.layerMenu)
 
@@ -225,7 +225,7 @@ class UI(object):
 
             actionGroup.addAction(action)
 
-            if oLayer.layerName() == sSelectedLayerName:
+            if oLayer.layerName() == self.core.layer().layerName():
                 action.setChecked(True)
 
     def uiUpdateWindowTitle(self):

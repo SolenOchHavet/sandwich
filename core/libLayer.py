@@ -37,8 +37,6 @@ class Layer(object):
             "dRenderGlobals": {},
         }
 
-        self.dRenderGlobals = {}
-
     def addAttribute(self, sAttributeName, sOverValue = "", 
         sRevertValue = "", sAssignment = ""):
         """
@@ -46,7 +44,7 @@ class Layer(object):
         override value, revert value and assignment.
 
         NOTE: Attribute will not be executed unless all three values have been
-        specified.
+        specified
         """
 
         self.dLayerData["dAttributes"][sAttributeName] = \
@@ -131,7 +129,7 @@ class Layer(object):
         lstData = self.dLayerData["dRenderSettings"]["lstRange"]
 
         if lstData[0]:
-            if lstData[2]:
+            if lstData[2] != None:
                 return lstData[2]
 
         return self.parent.dGlobals["iEnd"]
@@ -139,8 +137,6 @@ class Layer(object):
     def execute(self):
         """
         Applys the current layer to the scene
-
-        TODO: Make it work using the newest standards! Call self.layers()
         """
 
         # Quickly reset the visibility and shading.
@@ -168,7 +164,7 @@ class Layer(object):
             self.utils.applyCode(oLayer.revertMode(), oLayer.revertCode())
 
         # Reset the render globals into the defaults. The default render globals can only be resaved from Globals
-        self.utils.applyRenderGlobals(self.parent.engines(), self.dRenderGlobals)
+        self.utils.applyRenderGlobals(self.parent.engines(), self.parent.dMasterRenderGlobals)
 
         # If this is masterLayer then abort now (we know that if
         # self.sLayerName is empty)
@@ -219,7 +215,7 @@ class Layer(object):
         lstData = self.dLayerData["dRenderSettings"]["lstRange"]
 
         if lstData[0]:
-            if lstData[3]:
+            if lstData[3] != None:
                 return lstData[3]
 
         return self.parent.dGlobals["iStep"]
@@ -237,7 +233,7 @@ class Layer(object):
     def overrideMode(self):
         """
         Returns the override mode specified for the current layer. Can either
-        be "mel" or "python".
+        be "mel" or "python"
         """
 
         return self.dLayerData["sOverrideMode"]
@@ -262,7 +258,7 @@ class Layer(object):
         """
         Renames a layer from sOldLayerName to sNewLayerName
 
-        NOTE: This method will rename it instantly, without any savings needed.
+        NOTE: This method will rename it instantly, without any savings needed
         """
 
         # If we rename the current layer we will have to update the 
@@ -312,10 +308,8 @@ class Layer(object):
     def renderEngine(self):
         """
         Returns the specified render engine for the layer.
-
-        TODO: MUST RETURN THE ENGINE OBJECT!
         """
-        print "engine!?!??!"
+        
         lstData = self.dLayerData["dRenderSettings"]["lstRenderEngine"]
 
         if lstData[0]:
@@ -342,7 +336,7 @@ class Layer(object):
         lstData = self.dLayerData["dRenderSettings"]
 
         if lstData[0]:
-            if lstData[2]:
+            if lstData[2] != None:
                 return lstData[2]
 
         return self.parent.dGlobals["iHeight"]
@@ -356,7 +350,7 @@ class Layer(object):
         lstData = self.dLayerData["dRenderSettings"]
 
         if lstData[0]:
-            if lstData[1]:
+            if lstData[1] != None:
                 return lstData[1]
 
         return self.parent.dGlobals["iWidth"]
@@ -494,7 +488,7 @@ class Layer(object):
         lstData = self.dLayerData["dRenderSettings"]["lstRange"]
 
         if lstData[0]:
-            if lstData[1]:
+            if lstData[1] != None:
                 return lstData[1]
 
         return self.parent.dGlobals["iStart"]

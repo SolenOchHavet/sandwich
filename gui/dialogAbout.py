@@ -18,7 +18,7 @@ except:
 
 class AboutDialog(QDialog):
     def __init__(self, parent = None):
-        QDialog.__init__(self)
+        QDialog.__init__(self, parent)
 
         self.parent = parent
 

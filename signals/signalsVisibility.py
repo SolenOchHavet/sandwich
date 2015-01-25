@@ -10,10 +10,10 @@ Signals for "Visibility"
 
 class Signals(object):
     def __init__(self):
-        self.addobjectsButton.released.connect(self.evtAddObjects)
-        self.orgobjectsButton.released.connect(self.evtReorganizeObjects)
+        self.addobjectsButton.released.connect(self.sgnAddObjects)
+        self.orgobjectsButton.released.connect(self.sgnReorganizeObjects)
 
-    def evtAddObjects(self):
+    def sgnAddObjects(self):
         """
         When user clicks the button "Add Objects" to add selected objects in
         the scene into this tab. Adds only objects that does not yet exists
@@ -34,13 +34,14 @@ class Signals(object):
             print "Sandwich: No new objects were added because they have " \
                 "already been added!"
 
-    def evtReorganizeObjects(self):
+    def sgnReorganizeObjects(self):
         """
         When user clicks the button "Reorganize Objects" to organize them
         alphabetically in the text fields
         """
 
-        sNewContent = self.core.utils.reorganizeContent(self.uiGetContentAsString())
+        sNewContent = self.core.utils.reorganizeContent(
+            self.uiGetContentAsString())
 
         self.uiSetContent(sNewContent)
         self.uiSaveTabContent()

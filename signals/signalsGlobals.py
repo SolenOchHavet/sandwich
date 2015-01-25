@@ -10,17 +10,17 @@ Signals for "Globals"
 
 class Signals(object):
     def __init__(self):
-        self.rendersButton.released.connect(self.evtBrowseRenders)
-        self.scenesButton.released.connect(self.evtBrowseScenes)
-        self.cameraButton.released.connect(self.evtBrowseCamera)
-        self.cancelButton.released.connect(self.evtCancel)
-        self.saveButton.released.connect(self.evtSave)
+        self.rendersButton.released.connect(self.sgnBrowseRenders)
+        self.scenesButton.released.connect(self.sgnBrowseScenes)
+        self.cameraButton.released.connect(self.sgnBrowseCamera)
+        self.cancelButton.released.connect(self.sgnCancel)
+        self.saveButton.released.connect(self.sgnSave)
 
-    def evtBrowseCamera(self):
+    def sgnBrowseCamera(self):
         """
-        When user clicks the button "Browse" at the "Default Camera" line
-        to select the default camera that will be used to render a render
-        layer. Can later be overridden at layer level
+        When user clicks the button "Browse" at the "Default Camera" line to
+        select the default camera that will be used to render a render layer.
+        Can later be overridden at layer level
         """
 
         sCamera = self.uiGetNewCamera()
@@ -28,10 +28,10 @@ class Signals(object):
         if sCamera:
             self.uiSetCamera(sCamera)
 
-    def evtBrowseRenders(self):
+    def sgnBrowseRenders(self):
         """
-        When user clicks the button "Browse" at the "Output Renders" line
-        to select a directory for where the renders will be outputed
+        When user clicks the button "Browse" at the "Output Renders" line to
+        select a directory for where the renders will be outputed
         """
 
         sNewRendersFolder = self.uiGetNewRendersFolder()
@@ -39,7 +39,7 @@ class Signals(object):
         if sNewRendersFolder:
             self.uiSetRendersFolder(sNewRendersFolder)
 
-    def evtBrowseScenes(self):
+    def sgnBrowseScenes(self):
         """
         When user clicks the button "Browse" at the "Output Scenes" line to
         select a directory for where the scenes will be outputed
@@ -50,17 +50,17 @@ class Signals(object):
         if sNewScenesFolder:
             self.uiSetScenesFolder(sNewScenesFolder)
 
-    def evtCancel(self):
+    def sgnCancel(self):
         """
         When user clicks the button "Cancel" to abort the dialog
         """
 
         self.uiCloseWindow()
 
-    def evtSave(self):
+    def sgnSave(self):
         """
-        When user clicks the button "Save" to save the new settings that
-        are inside the Globals dialog
+        When user clicks the button "Save" to save the new settings that are
+        inside the Globals dialog
         """
 
         self.uiSaveSelectedCamera()

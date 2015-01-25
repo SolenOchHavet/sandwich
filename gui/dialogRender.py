@@ -26,7 +26,7 @@ reload(uiRender)
 
 class RenderDialog(QDialog, signalsRender.Signals, uiRender.UI):
     def __init__(self, parent = None, core = None):
-        QDialog.__init__(self)
+        QDialog.__init__(self, parent)
 
         self.core = core
 
